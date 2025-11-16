@@ -10,7 +10,7 @@ echo ""
 
 # Create directory structure
 echo "→ Creating directory structure..."
-mkdir -p custom-arch-setup/{dotfiles/{hypr/{scripts,},waybar/{scripts,},kitty,mako},wallpapers}
+mkdir -p custom-arch-setup/{dotfiles/{hypr/{scripts,themes,},waybar/{scripts,styles,},wofi,kitty,mako},wallpapers}
 
 # Copy install script
 echo "→ Copying install script..."
@@ -19,7 +19,10 @@ chmod +x custom-arch-setup/install.sh
 
 # Copy all config files
 echo "→ Copying Hyprland configs..."
-cp /home/claude/hyprland.conf custom-arch-setup/dotfiles/hypr/hyprland.conf
+cp hyprland.conf custom-arch-setup/dotfiles/hypr/hyprland.conf
+
+echo "→ Copying Hyprland themes..."
+cp hypr-themes/*.conf custom-arch-setup/dotfiles/hypr/themes/
 
 # Create hyprpaper config
 cat > custom-arch-setup/dotfiles/hypr/hyprpaper.conf << 'EOF'
@@ -78,125 +81,82 @@ label {
 EOF
 
 echo "→ Copying Hyprland scripts..."
-cp /home/claude/power-menu.sh custom-arch-setup/dotfiles/hypr/scripts/
-cp /home/claude/weather.sh custom-arch-setup/dotfiles/hypr/scripts/
-
-# Create additional scripts from installation guide
-cat > custom-arch-setup/dotfiles/hypr/scripts/keybinds-hint.sh << 'EOF'
-#!/bin/bash
-keybinds=$(cat << 'KEYBINDS'
-SUPER + T : Terminal
-SUPER + B : Browser
-SUPER + E : File Manager
-SUPER + A : App Launcher
-SUPER + N : Notes (Neovim)
-SUPER + Q : Close Window
-SUPER + L : Lock Screen
-SUPER + P : Screenshot
-SUPER + V : Clipboard
-SUPER + 1-9 : Switch Workspace
-SUPER + Shift + 1-9 : Move Window
-SUPER + Arrow Keys : Move Focus
-SUPER + Shift + Arrows : Resize
-KEYBINDS
-)
-echo "$keybinds" | wofi --dmenu --prompt "Keybindings" --width 500 --height 400
-EOF
-
-cat > custom-arch-setup/dotfiles/hypr/scripts/wallpaper-next.sh << 'EOF'
-#!/bin/bash
-WALLPAPER_DIR=~/Pictures/wallpapers
-WALLPAPERS=($(ls $WALLPAPER_DIR/*.{jpg,png} 2>/dev/null))
-CURRENT=$(hyprctl hyprpaper listloaded | head -1)
-INDEX=0
-for i in "${!WALLPAPERS[@]}"; do
-    [[ "${WALLPAPERS[$i]}" == "$CURRENT" ]] && INDEX=$(( (i + 1) % ${#WALLPAPERS[@]} ))
-done
-hyprctl hyprpaper unload "$CURRENT"
-hyprctl hyprpaper preload "${WALLPAPERS[$INDEX]}"
-hyprctl hyprpaper wallpaper ",${WALLPAPERS[$INDEX]}"
-EOF
-
-cat > custom-arch-setup/dotfiles/hypr/scripts/wallpaper-prev.sh << 'EOF'
-#!/bin/bash
-WALLPAPER_DIR=~/Pictures/wallpapers
-WALLPAPERS=($(ls $WALLPAPER_DIR/*.{jpg,png} 2>/dev/null))
-CURRENT=$(hyprctl hyprpaper listloaded | head -1)
-INDEX=0
-for i in "${!WALLPAPERS[@]}"; do
-    [[ "${WALLPAPERS[$i]}" == "$CURRENT" ]] && INDEX=$(( (i - 1 + ${#WALLPAPERS[@]}) % ${#WALLPAPERS[@]} ))
-done
-hyprctl hyprpaper unload "$CURRENT"
-hyprctl hyprpaper preload "${WALLPAPERS[$INDEX]}"
-hyprctl hyprpaper wallpaper ",${WALLPAPERS[$INDEX]}"
-EOF
-
-cat > custom-arch-setup/dotfiles/hypr/scripts/wallpaper-select.sh << 'EOF'
-#!/bin/bash
-WALLPAPER_DIR=~/Pictures/wallpapers
-selected=$(ls $WALLPAPER_DIR/*.{jpg,png} 2>/dev/null | xargs -n 1 basename | wofi --dmenu --prompt "Wallpaper")
-if [ -n "$selected" ]; then
-    CURRENT=$(hyprctl hyprpaper listloaded | head -1)
-    hyprctl hyprpaper unload "$CURRENT"
-    hyprctl hyprpaper preload "$WALLPAPER_DIR/$selected"
-    hyprctl hyprpaper wallpaper ",$WALLPAPER_DIR/$selected"
-fi
-EOF
-
-cat > custom-arch-setup/dotfiles/hypr/scripts/theme-select.sh << 'EOF'
-#!/bin/bash
-themes="Catppuccin Mocha\nDecay Green\nCancel"
-chosen=$(echo -e "$themes" | wofi --dmenu --prompt "Theme")
-case "$chosen" in
-    "Catppuccin Mocha")
-        sed -i 's/col.active_border = .*/col.active_border = rgba(89b4faff) rgba(cba6f7ff) 45deg/' ~/.config/hypr/hyprland.conf
-        sed -i 's/col.inactive_border = .*/col.inactive_border = rgba(313244aa)/' ~/.config/hypr/hyprland.conf
-        hyprctl reload && notify-send "Theme" "Switched to Catppuccin Mocha"
-        ;;
-    "Decay Green")
-        sed -i 's/col.active_border = .*/col.active_border = rgba(90ceaaff) rgba(78dba9ff) 45deg/' ~/.config/hypr/hyprland.conf
-        sed -i 's/col.inactive_border = .*/col.inactive_border = rgba(242832aa)/' ~/.config/hypr/hyprland.conf
-        hyprctl reload && notify-send "Theme" "Switched to Decay Green"
-        ;;
-esac
-EOF
-
+cp hypr-scripts/*.sh custom-arch-setup/dotfiles/hypr/scripts/
 chmod +x custom-arch-setup/dotfiles/hypr/scripts/*.sh
 
 echo "→ Copying Waybar configs..."
-cp /home/claude/waybar-config.json custom-arch-setup/dotfiles/waybar/config
-cp /home/claude/waybar-style.css custom-arch-setup/dotfiles/waybar/style.css
+cp waybar-config.json custom-arch-setup/dotfiles/waybar/config
+cp waybar-style.css custom-arch-setup/dotfiles/waybar/style.css
 
-# Move scripts to waybar
-mv custom-arch-setup/dotfiles/hypr/scripts/power-menu.sh custom-arch-setup/dotfiles/waybar/scripts/
-mv custom-arch-setup/dotfiles/hypr/scripts/weather.sh custom-arch-setup/dotfiles/waybar/scripts/
+echo "→ Copying Waybar style variations..."
+cp waybar-styles/*.css custom-arch-setup/dotfiles/waybar/styles/
+
+echo "→ Creating Waybar scripts..."
+# Power menu script
+cat > custom-arch-setup/dotfiles/waybar/scripts/power-menu.sh << 'EOF'
+#!/bin/bash
+~/.config/hypr/scripts/logout-menu.sh
+EOF
+
+# Weather script (placeholder)
+cat > custom-arch-setup/dotfiles/waybar/scripts/weather.sh << 'EOF'
+#!/bin/bash
+echo '{"text": "⛅", "tooltip": "Weather data unavailable"}'
+EOF
+
 chmod +x custom-arch-setup/dotfiles/waybar/scripts/*.sh
+
+echo "→ Creating Wofi config..."
+cp wofi-style.css custom-arch-setup/dotfiles/wofi/style.css
 
 echo "→ Creating Kitty config..."
 cat > custom-arch-setup/dotfiles/kitty/kitty.conf << 'EOF'
-# Catppuccin Mocha
-background #1e1e2e
-foreground #cdd6f4
-font_family JetBrains Mono
+# Kitty Configuration - Auto-themed
+include current-theme.conf
+
+# Font configuration
+font_family JetBrains Mono Nerd Font
+bold_font auto
+italic_font auto
+bold_italic_font auto
 font_size 11.0
+
+# Window configuration
 window_padding_width 4
 confirm_os_window_close 0
+background_opacity 0.95
+
+# Tab bar
 tab_bar_style powerline
-cursor #f5e0dc
-cursor_text_color #1e1e2e
-selection_foreground #1e1e2e
-selection_background #f5e0dc
+tab_powerline_style slanted
+
+# Performance
+repaint_delay 10
+input_delay 3
+sync_to_monitor yes
 EOF
 
 echo "→ Creating Mako config..."
 cat > custom-arch-setup/dotfiles/mako/config << 'EOF'
-font=JetBrains Mono 11
+# Mako notification config - Will be auto-themed
+font=JetBrains Mono Nerd Font 11
 background-color=#1e1e2e
 text-color=#cdd6f4
 border-color=#89b4fa
-border-size=1
-border-radius=0
+border-size=2
+border-radius=4
 default-timeout=5000
+max-visible=5
+layer=overlay
+anchor=top-right
+margin=10
+padding=10
+width=350
+height=150
+
+[urgency=high]
+border-color=#f38ba8
+default-timeout=0
 EOF
 
 echo "→ Adding sample wallpaper..."

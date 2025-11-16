@@ -1,0 +1,111 @@
+/* Minimal Waybar Style - Clean and simple */
+@import "colors.css";
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Font Awesome 6 Free";
+    font-size: 12px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: transparent;
+    color: @foreground;
+    border: none;
+}
+
+/* Workspaces */
+#workspaces {
+    background: alpha(@background, 0.8);
+    margin: 4px 8px;
+    padding: 0 4px;
+}
+
+#workspaces button {
+    padding: 0 6px;
+    color: @color8;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+}
+
+#workspaces button.active {
+    color: @color4;
+}
+
+#workspaces button.urgent {
+    color: @color1;
+}
+
+#workspaces button:hover {
+    background: alpha(@color4, 0.2);
+    color: @color4;
+}
+
+/* Window Title */
+#window {
+    margin: 0 8px;
+    padding: 0 8px;
+    color: @foreground;
+    background: transparent;
+}
+
+/* Clock */
+#clock {
+    padding: 0 12px;
+    margin: 4px 8px;
+    color: @foreground;
+    background: alpha(@background, 0.8);
+    font-weight: bold;
+}
+
+/* Right Modules */
+#custom-weather,
+#bluetooth,
+#network,
+#pulseaudio,
+#cpu,
+#memory,
+#battery,
+#tray,
+#custom-power {
+    padding: 0 8px;
+    margin: 4px 2px;
+    color: @foreground;
+    background: alpha(@background, 0.8);
+}
+
+#bluetooth.disconnected,
+#network.disconnected {
+    color: @color8;
+}
+
+#battery.warning:not(.charging) {
+    color: @color3;
+}
+
+#battery.critical:not(.charging) {
+    color: @color1;
+    animation: blink 1s linear infinite;
+}
+
+@keyframes blink {
+    to {
+        color: @background;
+    }
+}
+
+#custom-power {
+    color: @color1;
+    margin-right: 8px;
+}
+
+tooltip {
+    background: @background;
+    border: 1px solid @color4;
+    border-radius: 0;
+    padding: 8px;
+}
+
+tooltip label {
+    color: @foreground;
+}

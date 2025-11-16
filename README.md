@@ -1,10 +1,10 @@
 # CustomOS
 
-A custom Arch Linux-based operating system featuring a modern, minimal desktop environment with Hyprland Wayland compositor, Neovim, and Zsh.
+A custom Arch Linux-based operating system featuring a modern, minimal desktop environment with Hyprland Wayland compositor, Hyde-inspired theming system, and comprehensive customization options.
 
 ## Overview
 
-CustomOS is a carefully curated Linux distribution built on top of Arch Linux, designed for developers and power users who want a clean, efficient, and highly customizable desktop experience. It combines the power and flexibility of Arch Linux with a modern Wayland-based desktop environment.
+CustomOS is a carefully curated Linux distribution built on top of Arch Linux, designed for developers and power users who want a clean, efficient, and highly customizable desktop experience. It combines the power and flexibility of Arch Linux with a modern Wayland-based desktop environment and a complete Hyde-inspired theming ecosystem.
 
 ## Features
 
@@ -22,6 +22,17 @@ CustomOS is a carefully curated Linux distribution built on top of Arch Linux, d
 - 🔧 **Highly Customizable**: Easily modifiable configurations
 - 📦 **Curated Software**: Hand-picked applications and tools
 - 🔒 **Secure**: Modern security practices and minimal attack surface
+
+### 🎨 Hyde-Inspired Features (NEW!)
+- **10 Pre-configured Themes**: Catppuccin Mocha, Dracula, Nord, Tokyo Night, Gruvbox, One Dark, Rose Pine, Everforest, Solarized, Decay Green
+- **Dynamic Theme Switching**: Change entire system theme with one keybind (`Super+Shift+T`)
+- **Coordinated App Theming**: Themes apply to Hyprland, Waybar, Kitty, Wofi, and Mako simultaneously
+- **Advanced Wallpaper Management**: Smooth transitions with swww, theme-specific wallpapers, interactive picker
+- **Multiple Waybar Styles**: Minimal, Detailed, and Floating layout options
+- **Complete Script Suite**: 13 utility scripts for screenshots, theming, wallpapers, recording, and more
+- **Game Mode**: Toggle performance mode for gaming (`Super+G`)
+- **Enhanced Animations**: Smooth, Hyde-inspired window animations and effects
+- **Custom Theme Creation**: Easy-to-use theme template system
 
 ## System Requirements
 
@@ -56,18 +67,22 @@ sudo dd if=customos.iso of=/dev/sdX bs=4M status=progress && sync
 
 ### Installation Steps
 1. Boot from the CustomOS USB drive
-2. Follow the guided installer
-3. Configure user account and system settings
-4. Reboot and enjoy your new system
+2. Run the auto-installer: `bash install-auto.sh`
+3. Follow the guided prompts
+4. Configure user account and system settings
+5. Reboot and enjoy your new system
 
 ## Default Software
 
 ### Desktop Environment
 - **Hyprland**: Modern Wayland compositor with dynamic tiling
-- **Waybar**: Status bar with system information
-- **Wofi**: Application launcher
-- **Mako**: Notification daemon
-- **Swaylock**: Screen locker
+- **Waybar**: Status bar with system information (3 style variants)
+- **Wofi**: Application launcher (themed)
+- **Rofi (Wayland)**: Alternative launcher
+- **Mako**: Notification daemon (themed)
+- **Hyprlock**: Screen locker
+- **swww**: Animated wallpaper daemon
+- **hyprpaper**: Fallback wallpaper daemon
 
 ### Development Tools
 - **Neovim**: Modern Vim-based editor with LSP support
@@ -75,6 +90,7 @@ sudo dd if=customos.iso of=/dev/sdX bs=4M status=progress && sync
 - **Base-devel**: Essential development packages
 - **Docker**: Containerization platform
 - **Node.js & npm**: JavaScript runtime and package manager
+- **Python & pip**: Python programming
 
 ### System Utilities
 - **Zsh**: Modern shell with Oh My Zsh
@@ -82,19 +98,38 @@ sudo dd if=customos.iso of=/dev/sdX bs=4M status=progress && sync
 - **Btop**: System monitor
 - **Ranger**: File manager
 - **Firefox**: Web browser
+- **Grim/Slurp**: Screenshot tools
+- **wf-recorder**: Screen recording
+- **hyprpicker**: Color picker
+- **cliphist**: Clipboard manager
 
 ### Media & Graphics
 - **MPV**: Media player
 - **Imagemagick**: Image manipulation
-- **GIMP**: Image editor (optional)
+- **imv**: Image viewer
+- **Zathura**: PDF viewer
+
+### Theming & Customization
+- **python-pywal**: Color scheme generator
+- **10 Pre-installed Themes**: Ready to use
+- **Custom Theme System**: Easy theme creation
+- **Complete Utility Scripts**: Theme, wallpaper, screenshot management
 
 ## Configuration
 
 ### Hyprland
 Configuration files located in `~/.config/hypr/`
 - `hyprland.conf`: Main configuration
-- `keybinds.conf`: Keyboard shortcuts
-- `startup.conf`: Startup applications
+- `themes/`: Theme definitions (10 presets)
+- `colors.conf`: Current theme colors (auto-generated)
+- `scripts/`: 13 utility scripts
+
+### Waybar
+Located in `~/.config/waybar/`
+- `config`: Module configuration
+- `style.css`: Main styling (auto-themed)
+- `styles/`: 3 style variants (minimal, detailed, floating)
+- `colors.css`: Current theme colors (auto-generated)
 
 ### Neovim
 Configuration in `~/.config/nvim/`
@@ -109,13 +144,49 @@ Configuration in `~/.config/nvim/`
 
 ## Customization
 
-### Themes
-```bash
-# Change Hyprland theme
-hyprctl keyword general:col.active_border "rgb(ff6b6b)"
+CustomOS includes a complete Hyde-inspired customization system!
 
-# Update Waybar theme
-vim ~/.config/waybar/style.css
+### Theme Switching (Interactive)
+```bash
+# Open theme selector with keybind
+Super + Shift + T
+
+# Or run manually
+~/.config/hypr/scripts/theme-select.sh
+```
+
+### Available Themes
+1. **Catppuccin Mocha** - Soothing pastel theme (default)
+2. **Decay Green** - Dark with vibrant green accents
+3. **Nord** - Arctic, north-bluish color palette
+4. **Dracula** - Dark theme with vibrant colors
+5. **Gruvbox Dark** - Retro groove color scheme
+6. **Tokyo Night** - Clean, inspired by Tokyo's night sky
+7. **One Dark** - Iconic Atom editor theme
+8. **Rose Pine** - Natural pine with soho vibes
+9. **Everforest** - Comfortable green forest theme
+10. **Solarized Dark** - Precision colors
+
+### Custom Themes
+```bash
+# Create your own theme
+cp ~/.config/hypr/themes/catppuccin-mocha.conf ~/.config/hypr/themes/my-theme.conf
+vim ~/.config/hypr/themes/my-theme.conf
+
+# Apply it
+~/.config/hypr/scripts/theme-apply.sh my-theme
+```
+
+### Wallpaper Management
+```bash
+# Next/Previous wallpaper
+Super + Alt + Right/Left
+
+# Random wallpaper
+Super + Ctrl + W
+
+# Interactive picker
+Super + Shift + W
 ```
 
 ### Package Management
@@ -130,35 +201,43 @@ yay -S aur-package-name
 sudo pacman -Syu
 ```
 
-### Adding Software
-```bash
-# Essential development tools
-sudo pacman -S code rust golang python
-
-# Media tools
-sudo pacman -S obs-studio blender
-
-# Gaming
-sudo pacman -S steam lutris
-```
+**Full customization guide:** See [CUSTOMIZATION.md](CUSTOMIZATION.md)
 
 ## Keyboard Shortcuts
 
-### Hyprland Default Bindings
-- `Super + Return`: Open terminal
-- `Super + D`: Application launcher
-- `Super + Q`: Close window
-- `Super + M`: Exit Hyprland
-- `Super + V`: Toggle floating
-- `Super + F`: Toggle fullscreen
-- `Super + [1-9]`: Switch workspace
-- `Super + Shift + [1-9]`: Move window to workspace
-
-### Custom Shortcuts
+### Essential Shortcuts
+- `Super + T`: Terminal
+- `Super + A`: Application launcher
 - `Super + E`: File manager
 - `Super + B`: Web browser
+- `Super + Q`: Close window
 - `Super + L`: Lock screen
-- `Print`: Screenshot
+- `Super + /`: Keybindings help (full list)
+
+### Theme & Wallpaper (NEW!)
+- `Super + Shift + T`: Theme selector
+- `Super + Shift + W`: Wallpaper picker
+- `Super + Alt + Right/Left`: Next/Previous wallpaper
+- `Super + Ctrl + W`: Random wallpaper
+
+### Screenshots & Recording
+- `Super + P`: Area screenshot
+- `Print`: Full screenshot
+- `Super + Shift + P`: Color picker
+- `Super + R`: Screen recording toggle
+
+### Workspaces
+- `Super + [1-9]`: Switch workspace
+- `Super + Shift + [1-9]`: Move window to workspace
+- `Super + Ctrl + Right/Left`: Navigate workspaces
+
+### Utilities
+- `Super + G`: Toggle game mode
+- `Super + ,`: Emoji picker
+- `Ctrl + Alt + Del`: Power menu
+- `Ctrl + Shift + Esc`: System monitor
+
+**See full keybindings:** Press `Super + /` or check [CUSTOMIZATION.md](CUSTOMIZATION.md)
 
 ## Troubleshooting
 
@@ -170,6 +249,18 @@ sudo pacman -S steam lutris
 echo $XDG_SESSION_TYPE
 
 # Restart Hyprland
+hyprctl reload
+```
+
+#### Theme Not Applying
+```bash
+# Check theme files
+ls ~/.config/hypr/themes/
+
+# Manually apply theme
+~/.config/hypr/scripts/theme-apply.sh catppuccin-mocha
+
+# Reload Hyprland
 hyprctl reload
 ```
 
@@ -195,6 +286,7 @@ sudo systemctl restart NetworkManager
 - Check logs: `journalctl -f`
 - Hyprland wiki: [hyprland.org](https://hyprland.org)
 - Arch Wiki: [wiki.archlinux.org](https://wiki.archlinux.org)
+- CustomOS Docs: See CUSTOMIZATION.md and INSTALLATION.md
 
 ## Contributing
 
@@ -233,47 +325,84 @@ sudo pacman -S archiso git make
 git clone https://github.com/bindrap/CustomOS.git
 cd CustomOS
 
+# Download offline packages (optional, for offline ISO)
+bash create-offline-cache.sh
+
 # Build ISO
-sudo make build
+bash build-iso.sh
 
 # Test in VM (optional)
-make test-vm
+qemu-system-x86_64 -enable-kvm -m 4G -cdrom customos.iso
 ```
 
 ## Project Structure
 
 ```
 CustomOS/
-├── airootfs/           # Root filesystem overlay
-├── packages/           # Package lists
-├── configs/            # Configuration files
-│   ├── hyprland/      # Hyprland configs
-│   ├── neovim/        # Neovim configs
-│   └── zsh/           # Zsh configs
-├── scripts/            # Installation and setup scripts
-├── docs/              # Documentation
-├── Makefile           # Build automation
-└── README.md          # This file
+├── hyprland.conf              # Main Hyprland config
+├── hypr-themes/               # 10 pre-configured themes
+│   ├── catppuccin-mocha.conf
+│   ├── dracula.conf
+│   ├── nord.conf
+│   └── ... (7 more)
+├── hypr-scripts/              # 13 utility scripts
+│   ├── theme-apply.sh
+│   ├── theme-select.sh
+│   ├── wallpaper-*.sh (4 scripts)
+│   ├── screenshot-*.sh (2 scripts)
+│   ├── screen-record.sh
+│   ├── keybinds-hint.sh
+│   ├── emoji-picker.sh
+│   ├── logout-menu.sh
+│   └── gamemode-toggle.sh
+├── waybar-config.json         # Waybar configuration
+├── waybar-style.css           # Waybar styling (auto-themed)
+├── waybar-styles/             # 3 style variations
+│   ├── minimal.css
+│   ├── detailed.css
+│   └── floating.css
+├── wofi-style.css             # Wofi theming
+├── package-creator.sh         # Package generator
+├── create-offline-cache.sh    # Offline package downloader
+├── build-iso.sh               # ISO builder
+├── install-auto.sh            # Auto-installer
+├── README.md                  # This file
+├── CUSTOMIZATION.md           # Full customization guide
+├── INSTALLATION.md            # Installation guide
+└── BUILDING.md                # Build instructions
 ```
 
 ## Roadmap
 
-### Version 1.0 (Current)
+### Version 1.0 ✅ (Complete)
 - [x] Base Arch Linux system
 - [x] Hyprland Wayland compositor
 - [x] Essential development tools
 - [x] Custom configurations
 
-### Version 1.1 (Planned)
-- [ ] Automated installer GUI
-- [ ] Additional themes
-- [ ] Gaming optimizations
-- [ ] Hardware-specific ISOs
+### Version 1.5 ✅ (Current - Hyde-Inspired)
+- [x] 10 Pre-configured themes
+- [x] Dynamic theme switching system
+- [x] Wallpaper management with swww
+- [x] Complete utility script suite (13 scripts)
+- [x] Multiple Waybar layouts (3 variants)
+- [x] Game mode optimization
+- [x] Enhanced window rules & animations
+- [x] Coordinated app theming (Hyprland, Waybar, Kitty, Wofi, Mako)
 
-### Version 2.0 (Future)
+### Version 2.0 (Planned)
+- [ ] pywal integration for auto-theming from wallpapers
+- [ ] Theme preview before applying
+- [ ] Dotfiles backup/restore system
+- [ ] Community theme repository
+- [ ] GUI theme/wallpaper manager
+- [ ] Per-monitor wallpaper management
+
+### Version 2.5 (Future)
+- [ ] Automated installer GUI
+- [ ] Hardware-specific ISOs
 - [ ] Custom package repository
-- [ ] System update mechanism
-- [ ] Cloud sync for dotfiles
+- [ ] Cloud sync for configurations
 - [ ] Mobile device support
 
 ## License
@@ -284,6 +413,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Arch Linux**: The foundation of our system
 - **Hyprland**: Amazing Wayland compositor
+- **Hyde Project (prasanthrangan/hyprdots)**: Inspiration for theming system
+- **Catppuccin**: Beautiful color schemes
 - **Neovim**: Modern text editing
 - **Oh My Zsh**: Shell enhancement framework
 - All the open-source contributors who make this possible
@@ -297,6 +428,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**CustomOS** - *Crafted for developers, designed for everyone.*
+**CustomOS** - *Crafted for developers, designed for everyone. Now with Hyde-inspired theming!*
 
 Made with ❤️ by the CustomOS team
