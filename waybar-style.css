@@ -1,4 +1,7 @@
-/* Catppuccin Mocha Colors */
+/* Auto-themed Waybar Style - Colors imported from theme system */
+@import "colors.css";
+
+/* Fallback Catppuccin Mocha colors (if colors.css doesn't exist) */
 @define-color rosewater #f5e0dc;
 @define-color flamingo #f2cdcd;
 @define-color pink #f5c2e7;

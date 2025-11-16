@@ -38,13 +38,17 @@ PACKAGES=(
     hyprpaper
     hyprlock
     hypridle
-    
+
+    # Wallpaper daemons (Hyde-inspired)
+    swww
+
     # Status bar & notifications
     waybar
     mako
-    
+
     # App launchers & menus
     wofi
+    rofi-wayland
     
     # Terminal
     kitty
@@ -74,12 +78,14 @@ PACKAGES=(
     # Network
     network-manager-applet
     
-    # Screenshots & screen tools
+    # Screenshots & screen recording
     grim
     slurp
     hyprpicker
     wl-clipboard
     cliphist
+    wf-recorder
+    imagemagick
     
     # System monitoring
     btop
@@ -125,6 +131,20 @@ PACKAGES=(
     bat
     exa
     fzf
+
+    # Theming tools (Hyde-inspired)
+    python-pywal
+    python-pillow
+
+    # Terminal eye candy (optional)
+    cava
+    pipes.sh
+
+    # Additional utilities
+    fuzzel
+
+    # AUR helper (will need to be compiled)
+    # yay - Note: Include in AUR section of install script
 )
 
 echo "→ Package count: ${#PACKAGES[@]}"
