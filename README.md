@@ -313,13 +313,15 @@ We welcome contributions! Here's how you can help:
 
 ## Building from Source
 
-### Prerequisites
+### On Arch Linux
+
+**Prerequisites:**
 ```bash
 # Install build dependencies
 sudo pacman -S archiso git make
 ```
 
-### Build Process
+**Build Process:**
 ```bash
 # Clone repository
 git clone https://github.com/bindrap/CustomOS.git
@@ -334,6 +336,28 @@ bash build-iso.sh
 # Test in VM (optional)
 qemu-system-x86_64 -enable-kvm -m 4G -cdrom customos.iso
 ```
+
+### On Windows (WSL) or Non-Arch Systems
+
+If you're building from Windows WSL or another Linux distribution, use the Docker-based builder:
+
+**Prerequisites:**
+- Docker Desktop for Windows (with WSL integration enabled)
+- Or Docker on Linux
+
+**Build Process:**
+```bash
+# Clone repository
+git clone https://github.com/bindrap/CustomOS.git
+cd CustomOS
+
+# Build ISO using Docker
+bash build-iso-docker.sh
+
+# ISO will be in: ./iso-output/parteek-arch-YYYY.MM.DD.iso
+```
+
+**Full WSL/Docker Guide:** See [BUILDING-WSL.md](BUILDING-WSL.md) for detailed instructions.
 
 ## Project Structure
 

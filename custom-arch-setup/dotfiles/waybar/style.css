@@ -1,0 +1,214 @@
+/* Auto-themed Waybar Style - Colors imported from theme system */
+@import "colors.css";
+
+/* Fallback Catppuccin Mocha colors (if colors.css doesn't exist) */
+@define-color rosewater #f5e0dc;
+@define-color flamingo #f2cdcd;
+@define-color pink #f5c2e7;
+@define-color mauve #cba6f7;
+@define-color red #f38ba8;
+@define-color maroon #eba0ac;
+@define-color peach #fab387;
+@define-color yellow #f9e2af;
+@define-color green #a6e3a1;
+@define-color teal #94e2d5;
+@define-color sky #89dceb;
+@define-color sapphire #74c7ec;
+@define-color blue #89b4fa;
+@define-color lavender #b4befe;
+@define-color text #cdd6f4;
+@define-color subtext1 #bac2de;
+@define-color subtext0 #a6adc8;
+@define-color overlay2 #9399b2;
+@define-color overlay1 #7f849c;
+@define-color overlay0 #6c7086;
+@define-color surface2 #585b70;
+@define-color surface1 #45475a;
+@define-color surface0 #313244;
+@define-color base #1e1e2e;
+@define-color mantle #181825;
+@define-color crust #11111b;
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Font Awesome 6 Free";
+    font-size: 13px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: alpha(@base, 0.95);
+    color: @text;
+    border: none;
+    border-bottom: 1px solid @surface0;
+}
+
+/* Workspaces */
+#workspaces {
+    background: transparent;
+    margin: 2px 4px;
+    padding: 0;
+}
+
+#workspaces button {
+    padding: 0 8px;
+    color: @subtext0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+}
+
+#workspaces button.active {
+    color: @blue;
+    background: alpha(@surface0, 0.8);
+}
+
+#workspaces button.urgent {
+    color: @red;
+}
+
+#workspaces button:hover {
+    background: alpha(@surface0, 0.5);
+    color: @text;
+}
+
+/* Window Title */
+#window {
+    margin: 0 8px;
+    padding: 0 8px;
+    color: @text;
+}
+
+/* Clock */
+#clock {
+    padding: 0 12px;
+    color: @blue;
+    font-weight: bold;
+}
+
+/* All Right Modules */
+#custom-weather,
+#custom-keybinds,
+#bluetooth,
+#network,
+#pulseaudio,
+#cpu,
+#memory,
+#temperature,
+#battery,
+#tray,
+#custom-power {
+    padding: 0 8px;
+    margin: 0 2px;
+    color: @text;
+    background: transparent;
+}
+
+/* Individual Module Styling */
+#custom-weather {
+    color: @yellow;
+}
+
+#custom-keybinds {
+    color: @lavender;
+}
+
+#custom-keybinds:hover {
+    background: alpha(@surface0, 0.5);
+}
+
+#bluetooth {
+    color: @blue;
+}
+
+#bluetooth.disconnected {
+    color: @overlay0;
+}
+
+#network {
+    color: @green;
+}
+
+#network.disconnected {
+    color: @overlay0;
+}
+
+#pulseaudio {
+    color: @mauve;
+}
+
+#pulseaudio.muted {
+    color: @overlay0;
+}
+
+#cpu {
+    color: @peach;
+}
+
+#memory {
+    color: @sky;
+}
+
+#temperature {
+    color: @teal;
+}
+
+#temperature.critical {
+    color: @red;
+}
+
+#battery {
+    color: @green;
+}
+
+#battery.charging {
+    color: @yellow;
+}
+
+#battery.warning:not(.charging) {
+    color: @peach;
+}
+
+#battery.critical:not(.charging) {
+    color: @red;
+    animation: blink 1s linear infinite;
+}
+
+@keyframes blink {
+    to {
+        color: @base;
+    }
+}
+
+#tray {
+    background: transparent;
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+}
+
+#custom-power {
+    color: @red;
+    font-size: 16px;
+    padding: 0 10px;
+}
+
+#custom-power:hover {
+    background: alpha(@surface0, 0.5);
+}
+
+/* Tooltips */
+tooltip {
+    background: @base;
+    border: 1px solid @surface0;
+    border-radius: 0;
+    padding: 8px;
+}
+
+tooltip label {
+    color: @text;
+}

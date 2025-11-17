@@ -12,10 +12,13 @@ echo ""
 echo "→ Creating directory structure..."
 mkdir -p custom-arch-setup/{dotfiles/{hypr/{scripts,themes,},waybar/{scripts,styles,},wofi,kitty,mako},wallpapers}
 
-# Copy install script
-echo "→ Copying install script..."
-cp /home/claude/install.sh custom-arch-setup/
-chmod +x custom-arch-setup/install.sh
+# Copy install scripts
+echo "→ Copying install scripts..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cp "$SCRIPT_DIR/install.sh" custom-arch-setup/ 2>/dev/null || echo "Warning: install.sh not found"
+cp "$SCRIPT_DIR/install-auto.sh" custom-arch-setup/ 2>/dev/null || echo "Warning: install-auto.sh not found"
+cp "$SCRIPT_DIR/post-install.sh" custom-arch-setup/ 2>/dev/null || echo "Warning: post-install.sh not found"
+chmod +x custom-arch-setup/*.sh 2>/dev/null || true
 
 # Copy all config files
 echo "→ Copying Hyprland configs..."
@@ -164,31 +167,62 @@ echo "Download wallpapers manually to custom-arch-setup/wallpapers/"
 
 echo "→ Creating README..."
 cat > custom-arch-setup/README.md << 'EOF'
-# Parteek's Custom Arch Linux Setup
+# Parteek's CustomOS - Hyprland Setup
 
-Automated Hyprland configuration with Catppuccin Mocha theme.
+Complete Hyprland environment with 10 themes, Hyde-inspired customization system.
 
-## Quick Install
+## 🚀 Installation
 
+### Automatic (Should run on first login)
+This script should run automatically when you log in for the first time.
+
+### Manual (If auto-install didn't work)
 ```bash
-chmod +x install.sh
-./install.sh
+cd ~/custom-setup
+bash post-install.sh
 ```
 
-## Features
-- Minimal Hyprland with Catppuccin Mocha
-- Complete Waybar with system monitoring
-- Pre-configured keybinds
-- One-command installation
+This will:
+- Install all packages (Hyprland, Waybar, themes, etc.)
+- Copy all configurations
+- Apply Catppuccin Mocha theme
+- Set up auto-start for Hyprland
 
-## Keybinds
+**Takes 5-10 minutes with internet connection.**
+
+## ✨ Features After Setup
+- Hyprland Wayland Compositor
+- 10 Pre-configured Themes
+- Complete Waybar with 3 style variants
+- Hyde-inspired customization system
+- All utility scripts
+
+## ⌨️ Essential Keybinds
 - `SUPER + T` - Terminal
-- `SUPER + B` - Browser
 - `SUPER + A` - App Launcher
-- `SUPER + /` - Keybindings Help
+- `SUPER + Shift + T` - Theme Selector (10 themes!)
+- `SUPER + Shift + W` - Wallpaper Picker
+- `SUPER + /` - Show All Keybindings
+- `SUPER + Q` - Close Window
 - `SUPER + L` - Lock Screen
 
-Created by Parteek
+## 🎨 Available Themes
+1. Catppuccin Mocha (default)
+2. Dracula
+3. Nord
+4. Tokyo Night
+5. Gruvbox Dark
+6. One Dark
+7. Rose Pine
+8. Everforest
+9. Solarized Dark
+10. Decay Green
+
+**Switch themes:** `SUPER + Shift + T`
+
+---
+
+**Created by Parteek** ✨
 EOF
 
 # Create package

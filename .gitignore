@@ -1,0 +1,80 @@
+# ISO Build Output
+iso-output/
+*.iso
+*.img
+
+# Build artifacts and work directories
+work/
+airootfs/
+build/
+out/
+*.build/
+customiso/
+
+# Package caches and downloads
+pkg/
+*.pkg.tar.zst
+*.pkg.tar.xz
+*.pkg.tar.gz
+packages/
+cache/
+offline-cache/
+pacman-cache/
+
+# Arch Linux specific
+*.db
+*.db.tar.gz
+*.files
+*.files.tar.gz
+*.sig
+
+# Compressed archives (adjust if you need to commit some)
+*.tar.gz
+*.tar.xz
+*.tar.bz2
+*.zip
+*.7z
+!parteek-custom-arch.tar.gz
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.*.swp
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Root filesystem artifacts
+rootfs/
+squashfs-root/
+initramfs/
+
+# Docker artifacts
+.dockerignore
+docker-compose.override.yml
+
+# Screenshot/image files (adjust as needed)
+*.png
+*.jpg
+*.jpeg
+!os_issues.png
+!os_issues_2.png
