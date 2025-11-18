@@ -339,9 +339,6 @@ echo "→ Adding minimal packages..."
 cat >> packages.x86_64 << "EOFPKG"
 # Minimal additions
 vim
-lsblk
-parted
-gptfdisk
 EOFPKG
 
 # Set permissions
