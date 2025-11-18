@@ -41,24 +41,32 @@ fi
 
 # Detect internet connectivity
 echo -e "${YELLOW}→${NC} Detecting internet connectivity..."
-sleep 1
+echo "Testing connection, please wait..."
+sleep 2
 
 INSTALL_MODE="offline"
 
-# Check if network interfaces are up
-if ip link show | grep -q "state UP"; then
-    # Try multiple methods to detect internet
-    if ping -c 2 -W 3 8.8.8.8 &>/dev/null || \
-       ping -c 2 -W 3 1.1.1.1 &>/dev/null || \
-       ping -c 2 -W 3 archlinux.org &>/dev/null || \
-       curl -s --connect-timeout 3 http://archlinux.org &>/dev/null; then
-        INSTALL_MODE="online"
-        echo -e "${GREEN}✓${NC} Internet detected - Using online installation"
-    else
-        echo -e "${YELLOW}!${NC} Network up but no internet - Using offline installation"
-    fi
+# Try ping first (most reliable)
+if ping -c 1 -W 5 8.8.8.8 &>/dev/null; then
+    INSTALL_MODE="online"
+    echo -e "${GREEN}✓${NC} Internet detected - Using online installation"
+elif ping -c 1 -W 5 1.1.1.1 &>/dev/null; then
+    INSTALL_MODE="online"
+    echo -e "${GREEN}✓${NC} Internet detected - Using online installation"
+elif ping -c 1 -W 5 archlinux.org &>/dev/null; then
+    INSTALL_MODE="online"
+    echo -e "${GREEN}✓${NC} Internet detected - Using online installation"
 else
-    echo -e "${YELLOW}!${NC} No network connection - Using offline installation"
+    echo -e "${YELLOW}!${NC} No internet detected - Would use offline installation"
+    echo ""
+    echo "If you have internet, the detection may have failed."
+    read -p "Do you have internet connection? (yes/no): " HAS_INTERNET
+    if [ "$HAS_INTERNET" = "yes" ]; then
+        INSTALL_MODE="online"
+        echo -e "${GREEN}✓${NC} Manual override - Using online installation"
+    else
+        echo -e "${YELLOW}!${NC} Using offline installation (requires offline packages)"
+    fi
 fi
 
 echo ""
@@ -158,21 +166,47 @@ mount ${DISK_P}1 /mnt/boot
 echo -e "${YELLOW}→${NC} Installing base system..."
 if [ "$INSTALL_MODE" = "online" ]; then
     # Online: Use pacstrap to download and install
-    pacstrap /mnt base base-devel linux linux-firmware \
-        vim networkmanager sudo git
+    echo "  Downloading and installing packages from internet..."
+    if ! pacstrap /mnt base base-devel linux linux-firmware \
+        vim networkmanager sudo git; then
+        echo -e "${RED}✗${NC} Failed to install packages!"
+        echo "This could mean:"
+        echo "  - No internet connection (try manual ping test)"
+        echo "  - Package mirror is down"
+        echo "  - Network issues in VM"
+        echo ""
+        echo "Try:"
+        echo "  1. Check network: ping -c 3 archlinux.org"
+        echo "  2. Restart NetworkManager: systemctl restart NetworkManager"
+        echo "  3. Re-run install-arch"
+        exit 1
+    fi
 else
     # Offline: Use local packages
+    echo "  Using offline package cache..."
     if [ -d "$SCRIPT_DIR/packages" ]; then
         # Set up local repo
         mkdir -p /mnt/var/cache/pacman/pkg
         cp "$SCRIPT_DIR/packages"/*.pkg.tar.zst /mnt/var/cache/pacman/pkg/
-        
+
         # Install from cache
         pacman -r /mnt -S --noconfirm --cachedir /mnt/var/cache/pacman/pkg \
             base base-devel linux linux-firmware \
             vim networkmanager sudo git
     else
-        echo -e "${RED}✗${NC} Offline packages not found!"
+        echo -e "${RED}✗${NC} Offline installation requires offline packages!"
+        echo ""
+        echo "This ISO does not include offline packages."
+        echo ""
+        echo "Options:"
+        echo "  1. Connect to internet and re-run install-arch"
+        echo "  2. Build an offline ISO with packages included"
+        echo ""
+        echo "To build offline ISO:"
+        echo "  bash create-offline-cache.sh"
+        echo "  bash package-creator.sh"
+        echo "  cd customIso_nov19 && bash build-custom-iso.sh"
+        echo ""
         exit 1
     fi
 fi
