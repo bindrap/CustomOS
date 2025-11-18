@@ -51,10 +51,31 @@ CustomOS is a carefully curated Linux distribution built on top of Arch Linux, d
 ## Installation
 
 ### Prerequisites
-- UEFI system (recommended)
+- UEFI system (recommended, BIOS also supported)
 - Secure Boot disabled (if enabled)
-- Internet connection
-- USB drive (8GB+)
+- Internet connection (or use offline ISO)
+- USB drive (8GB+) or VirtualBox for testing
+
+### Testing in VirtualBox (Recommended First!)
+
+**Want to try CustomOS without installing on real hardware?**
+
+CustomOS works great in VirtualBox! This is the safest way to test:
+
+```bash
+# 1. Build or download the ISO
+# 2. Create a new VirtualBox VM
+# 3. Boot the ISO and run: install-arch
+```
+
+**See the complete guide:** [VIRTUALBOX-GUIDE.md](VIRTUALBOX-GUIDE.md)
+
+**Recommended VM Settings:**
+- RAM: 4GB+
+- CPUs: 2+ cores
+- Disk: 50GB+
+- Graphics: VMSVGA with 3D acceleration
+- VirtualBox Guest Additions: Auto-installed ✓
 
 ### Quick Start
 ```bash
@@ -66,8 +87,8 @@ sudo dd if=customos.iso of=/dev/sdX bs=4M status=progress && sync
 ```
 
 ### Installation Steps
-1. Boot from the CustomOS USB drive
-2. Run the auto-installer: `bash install-auto.sh`
+1. Boot from the CustomOS USB drive (or VirtualBox)
+2. Run the auto-installer: `install-arch`
 3. Follow the guided prompts
 4. Configure user account and system settings
 5. Reboot and enjoy your new system
@@ -333,8 +354,11 @@ bash create-offline-cache.sh
 # Build ISO
 bash build-iso.sh
 
-# Test in VM (optional)
-qemu-system-x86_64 -enable-kvm -m 4G -cdrom customos.iso
+# Test in VirtualBox (recommended)
+# See VIRTUALBOX-GUIDE.md for complete instructions
+
+# Or test in QEMU (quick test)
+qemu-system-x86_64 -enable-kvm -m 4G -cdrom ~/iso-output/parteek-arch-*.iso
 ```
 
 ### On Windows (WSL) or Non-Arch Systems

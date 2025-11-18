@@ -44,11 +44,21 @@ echo -e "${YELLOW}→${NC} Detecting internet connectivity..."
 sleep 1
 
 INSTALL_MODE="offline"
-if ping -c 2 archlinux.org &>/dev/null || ping -c 2 8.8.8.8 &>/dev/null; then
-    INSTALL_MODE="online"
-    echo -e "${GREEN}✓${NC} Internet detected - Using online installation"
+
+# Check if network interfaces are up
+if ip link show | grep -q "state UP"; then
+    # Try multiple methods to detect internet
+    if ping -c 2 -W 3 8.8.8.8 &>/dev/null || \
+       ping -c 2 -W 3 1.1.1.1 &>/dev/null || \
+       ping -c 2 -W 3 archlinux.org &>/dev/null || \
+       curl -s --connect-timeout 3 http://archlinux.org &>/dev/null; then
+        INSTALL_MODE="online"
+        echo -e "${GREEN}✓${NC} Internet detected - Using online installation"
+    else
+        echo -e "${YELLOW}!${NC} Network up but no internet - Using offline installation"
+    fi
 else
-    echo -e "${YELLOW}!${NC} No internet - Using offline installation"
+    echo -e "${YELLOW}!${NC} No network connection - Using offline installation"
 fi
 
 echo ""
@@ -204,24 +214,56 @@ sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 # Install bootloader
 bootctl install
 
-# Create boot entry
+# Create boot entries
 ROOT_UUID=\$(blkid -s UUID -o value ${DISK_P}3)
+
+# Main boot entry with optimized parameters
 cat > /boot/loader/entries/arch.conf << EOF
-title   Arch Linux
+title   CustomOS (Arch Linux)
 linux   /vmlinuz-linux
 initrd  /initramfs-linux.img
+options root=UUID=\$ROOT_UUID rw quiet splash loglevel=3 systemd.show_status=auto rd.udev.log_level=3
+EOF
+
+# Fallback boot entry
+cat > /boot/loader/entries/arch-fallback.conf << EOF
+title   CustomOS (Arch Linux - Fallback)
+linux   /vmlinuz-linux
+initrd  /initramfs-linux-fallback.img
 options root=UUID=\$ROOT_UUID rw
 EOF
 
+# Safe mode entry for troubleshooting
+cat > /boot/loader/entries/arch-safe.conf << EOF
+title   CustomOS (Safe Mode)
+linux   /vmlinuz-linux
+initrd  /initramfs-linux.img
+options root=UUID=\$ROOT_UUID rw nomodeset i915.modeset=0 nouveau.modeset=0
+EOF
+
+# Bootloader configuration
 cat > /boot/loader/loader.conf << EOF
 default arch.conf
-timeout 3
-console-mode max
+timeout 5
+console-mode keep
 editor no
 EOF
 
 # Enable NetworkManager
 systemctl enable NetworkManager
+
+# Detect if running in VirtualBox and configure accordingly
+if lspci | grep -i "virtualbox" &>/dev/null || dmesg | grep -i "vbox" &>/dev/null; then
+    echo "VirtualBox detected - Will configure guest additions after reboot"
+    # Mark for post-install VirtualBox setup
+    touch /var/lib/vbox-detected
+fi
+
+# Install VirtualBox Guest Additions if in VirtualBox (best effort)
+if [ -f /var/lib/vbox-detected ]; then
+    pacman -S --needed --noconfirm virtualbox-guest-utils || true
+    systemctl enable vboxservice || true
+fi
 
 CHROOT_EOF
 

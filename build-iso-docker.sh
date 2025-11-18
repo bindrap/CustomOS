@@ -296,6 +296,11 @@ cat >> packages.x86_64 << "EOFPKG"
 git
 neovim
 htop
+pciutils
+usbutils
+lshw
+dmidecode
+virtualbox-guest-utils-nox
 EOFPKG
 
 # Set proper permissions in profiledef.sh
@@ -306,6 +311,7 @@ cat >> profiledef.sh << "EOFPERMS"
 # File permissions that will be set in the live environment
 file_permissions=(
   ["/usr/local/bin/install-arch"]="0:0:755"
+  ["/root/custom-setup"]="0:0:755"
   ["/root/custom-setup/install.sh"]="0:0:755"
   ["/root/custom-setup/install-auto.sh"]="0:0:755"
   ["/root/custom-setup/post-install.sh"]="0:0:755"
@@ -313,6 +319,16 @@ file_permissions=(
 )
 EOFPERMS
 echo "  ✓ File permissions configured"
+
+# Add boot parameters for better hardware compatibility
+echo "→ Configuring boot parameters for VirtualBox compatibility..."
+# The archiso releng profile uses GRUB for both UEFI and BIOS
+# Configure GRUB with better kernel parameters
+if [ -f "grub/grub.cfg" ]; then
+    # Add VirtualBox-friendly kernel parameters
+    sed -i "s/archisobasedir=arch/archisobasedir=arch vga=791 driver=free/" grub/grub.cfg || true
+fi
+echo "  ✓ Boot parameters configured"
 
 # Customize ISO label
 ISO_LABEL=$(echo "${ISO_NAME}" | tr "[:lower:]" "[:upper:]")

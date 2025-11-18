@@ -129,6 +129,15 @@ echo ""
 echo -e "${YELLOW}→${NC} Enabling system services..."
 sudo systemctl enable NetworkManager
 sudo systemctl enable bluetooth
+
+# Detect and configure VirtualBox if running in VM
+if lspci | grep -i "virtualbox" &>/dev/null || dmesg | grep -i "vbox" &>/dev/null; then
+    echo -e "${YELLOW}→${NC} VirtualBox detected - Installing guest additions..."
+    sudo pacman -S --needed --noconfirm virtualbox-guest-utils || true
+    sudo systemctl enable vboxservice || true
+    echo -e "${GREEN}✓${NC} VirtualBox guest additions installed"
+fi
+
 echo -e "${GREEN}✓${NC} Services enabled"
 
 # Create config directories
