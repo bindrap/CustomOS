@@ -1,21 +1,10 @@
 #!/bin/bash
 
-# Docker-based Arch Linux ISO Builder for WSL (Improved)
+# Docker-based Arch Linux ISO Builder for WSL
 # Runs the ISO build inside an Arch Linux container
 # Output ISO is accessible from Windows
-#
-# IMPROVEMENTS:
-# - Uses cached Docker image for faster builds
-# - Persistent package cache between builds
-# - Parallel package downloads
-# - Build validation
-# - Better error handling
-# - Old ISO cleanup
 
-set -euo pipefail  # Exit on error, undefined vars, pipe failures
-
-# Error handler
-trap 'echo "❌ Build failed at line $LINENO"' ERR
+set -e
 
 # Colors
 RED='\033[0;31m'
@@ -35,19 +24,16 @@ cat << "EOF"
 ║   ██║███████║╚██████╔╝    ██████╔╝╚██████╔╝██║███████╗██████╔╝║
 ║   ╚═╝╚══════╝ ╚═════╝     ╚═════╝  ╚═════╝ ╚═╝╚══════╝╚═════╝ ║
 ║                                                           ║
-║     Custom Arch Linux ISO Builder (Docker - Improved)     ║
+║        Custom Arch Linux ISO Builder (Docker)             ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
 EOF
 echo -e "${NC}"
 
 ISO_NAME="parteek-arch"
-ISO_VERSION=$(date +%Y.%m.%d-%H%M)
+ISO_VERSION=$(date +%Y.%m.%d)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUTPUT_DIR="$SCRIPT_DIR/iso-output"
-CACHE_DIR="$HOME/.cache/archiso-pkgs"
-IMAGE_NAME="archiso-builder"
-USE_CACHED_IMAGE="yes"
 
 echo ""
 echo -e "${YELLOW}Docker-based ISO Builder for WSL${NC}"
@@ -77,76 +63,43 @@ if ! docker info &> /dev/null; then
 fi
 
 echo -e "${GREEN}✓${NC} Docker is ready"
-
-# Check if cached image exists
-if ! docker image inspect "$IMAGE_NAME" &>/dev/null; then
-    echo -e "${YELLOW}⚠${NC} Cached Docker image not found"
-    echo ""
-    echo "For faster builds, you can create a reusable Docker image:"
-    echo "  ./build-docker-image.sh"
-    echo ""
-    echo "This build will use the base archlinux:latest image (slower)"
-    read -p "Continue anyway? (yes/no): " CONFIRM
-    if [ "$CONFIRM" != "yes" ]; then
-        exit 0
-    fi
-    USE_CACHED_IMAGE="no"
-else
-    echo -e "${GREEN}✓${NC} Using cached Docker image (faster build!)"
-fi
-
 echo ""
-read -p "Continue with ISO build? (yes/no): " CONFIRM
+
+read -p "Continue? (yes/no): " CONFIRM
 if [ "$CONFIRM" != "yes" ]; then
     exit 0
 fi
 
-# Create directories
+# Create output directory
 mkdir -p "$OUTPUT_DIR"
-mkdir -p "$CACHE_DIR"
 
 echo ""
 echo -e "${BLUE}Building ISO in Docker container...${NC}"
 echo ""
 
-# Determine which image to use
-if [ "$USE_CACHED_IMAGE" = "yes" ]; then
-    DOCKER_IMAGE="$IMAGE_NAME"
-else
-    DOCKER_IMAGE="archlinux:latest"
-fi
-
 # Build the ISO inside Arch Linux container
-# Mount the current directory AND a persistent package cache
+# Mount the current directory so files are accessible
 docker run --rm --privileged \
     -v "$SCRIPT_DIR:/workspace" \
-    -v "$CACHE_DIR:/var/cache/pacman/pkg" \
     -w /workspace \
-    "$DOCKER_IMAGE" \
+    archlinux:latest \
     bash -c '
-# Error handling
-set -euo pipefail
-trap '\''echo "❌ Build failed inside container at line $LINENO"'\'' ERR
+# Update package database with better mirrors
+echo "→ Configuring fast mirrors..."
+# Use reflector to get fast mirrors
+pacman -Sy --noconfirm reflector
+reflector --country US --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
 
-# If using base archlinux image, set up environment
-if [ "'"$USE_CACHED_IMAGE"'" = "no" ]; then
-    echo "→ Configuring fast mirrors..."
-    pacman -Sy --noconfirm reflector
-    reflector --country US,CA --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+echo "→ Updating package database..."
+pacman -Sy --noconfirm
 
-    echo "→ Enabling parallel downloads..."
-    sed -i "s/#ParallelDownloads = 5/ParallelDownloads = 10/" /etc/pacman.conf
-
-    echo "→ Updating package database..."
-    pacman -Sy --noconfirm
-
-    echo "→ Installing archiso and dependencies..."
-    pacman -S --needed --noconfirm archiso git
-fi
+# Install required packages
+echo "→ Installing archiso and dependencies..."
+pacman -S --needed --noconfirm archiso git
 
 # Set up variables
-ISO_NAME="'"$ISO_NAME"'"
-ISO_VERSION="'"$ISO_VERSION"'"
+ISO_NAME="parteek-arch"
+ISO_VERSION=$(date +%Y.%m.%d)
 WORK_DIR="/tmp/archiso-work"
 ISO_DIR="$WORK_DIR/iso-build"
 OUTPUT_DIR="/workspace/iso-output"
@@ -185,6 +138,7 @@ fi
 # Ensure install scripts are executable
 echo "→ Ensuring install scripts are executable..."
 chmod +x airootfs/root/custom-setup/*.sh 2>/dev/null || true
+# Make all scripts executable recursively
 find airootfs/root/custom-setup -type f -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
 
 # Verify critical files exist
@@ -265,7 +219,7 @@ rm -f airootfs/root/.automated_script.sh
 # Create a clean .zlogin (remove automated_script.sh call)
 cat > airootfs/root/.zlogin << "EOFZLOGIN"
 # fix for screen readers
-if grep -Fqa '\''accessibility='\'' /proc/cmdline &> /dev/null; then
+if grep -Fqa 'accessibility=' /proc/cmdline &> /dev/null; then
     setopt SINGLE_LINE_ZLE
 fi
 EOFZLOGIN
@@ -275,16 +229,14 @@ echo "→ Creating install-arch command..."
 mkdir -p airootfs/usr/local/bin
 cat > airootfs/usr/local/bin/install-arch << "EOFINSTALL"
 #!/bin/bash
-cd /root/custom-setup || exit 1
-chmod +x install-auto.sh
-exec bash ./install-auto.sh
+cd /root/custom-setup
+exec ./install-auto.sh
 EOFINSTALL
 chmod +x airootfs/usr/local/bin/install-arch
 
-# Verify install-arch was created and is executable
+# Verify install-arch was created
 if [ -f airootfs/usr/local/bin/install-arch ]; then
     echo "  ✓ install-arch command created"
-    ls -la airootfs/usr/local/bin/install-arch | grep -q "x" && echo "  ✓ install-arch is executable" || echo "  ! WARNING: install-arch not executable"
 else
     echo "  ! WARNING: install-arch command failed to create"
 fi
@@ -298,23 +250,8 @@ neovim
 htop
 EOFPKG
 
-# Set proper permissions in profiledef.sh
-echo "→ Configuring file permissions in profiledef.sh..."
-# Append file_permissions array to profiledef.sh to ensure permissions persist in the ISO
-cat >> profiledef.sh << "EOFPERMS"
-
-# File permissions that will be set in the live environment
-file_permissions=(
-  ["/usr/local/bin/install-arch"]="0:0:755"
-  ["/root/custom-setup/install.sh"]="0:0:755"
-  ["/root/custom-setup/install-auto.sh"]="0:0:755"
-  ["/root/custom-setup/post-install.sh"]="0:0:755"
-  ["/root"]="0:0:750"
-)
-EOFPERMS
-echo "  ✓ File permissions configured"
-
 # Customize ISO label
+# Convert to uppercase and remove dots from version
 ISO_LABEL=$(echo "${ISO_NAME}" | tr "[:lower:]" "[:upper:]")
 ISO_VER_NODOTS=$(echo "${ISO_VERSION}" | tr -d ".")
 sed -i "s/ARCH_[0-9]*/${ISO_LABEL}_${ISO_VER_NODOTS}/" profiledef.sh
@@ -322,7 +259,7 @@ sed -i "s/ARCH_[0-9]*/${ISO_LABEL}_${ISO_VER_NODOTS}/" profiledef.sh
 # Build ISO
 echo ""
 echo "╔════════════════════════════════════════╗"
-echo "║ Building ISO (this may take 5-10 min)  ║"
+echo "║ Building ISO (this may take 10-15 min) ║"
 echo "╚════════════════════════════════════════╝"
 echo ""
 
@@ -335,23 +272,6 @@ if [ $BUILD_EXIT_CODE -eq 0 ]; then
     ISO_FILE=$(ls -t "$OUTPUT_DIR"/*.iso 2>/dev/null | head -1)
     if [ -f "$ISO_FILE" ]; then
         ISO_SIZE=$(du -h "$ISO_FILE" | cut -f1)
-
-        # Validate ISO
-        echo ""
-        echo "→ Validating ISO..."
-        if file "$ISO_FILE" | grep -q "ISO 9660"; then
-            echo "  ✓ Valid ISO format"
-        else
-            echo "  ✗ Warning: ISO validation failed!"
-        fi
-
-        # Check size
-        ISO_SIZE_BYTES=$(stat -c%s "$ISO_FILE")
-        if [ $ISO_SIZE_BYTES -lt 500000000 ]; then
-            echo "  ⚠ Warning: ISO seems unusually small ($ISO_SIZE)"
-        else
-            echo "  ✓ ISO size: $ISO_SIZE"
-        fi
 
         # Success message
         echo ""
@@ -389,24 +309,19 @@ else
     echo "  • Slow mirror connection"
     echo "  • Insufficient disk space"
     echo ""
-    echo "Try running the script again. Packages are cached for faster retry."
+    echo "Try running the script again. It will use faster mirrors."
     echo ""
     exit 1
 fi
 '
 
 # Check if build succeeded (outside Docker container)
-ISO_FILE=$(ls -t "$OUTPUT_DIR"/*.iso 2>/dev/null | head -1)
-if [ -f "$ISO_FILE" ]; then
+if [ -f "$OUTPUT_DIR"/*.iso ]; then
+    ISO_FILE=$(ls -t "$OUTPUT_DIR"/*.iso | head -1)
     ISO_SIZE=$(du -h "$ISO_FILE" | cut -f1)
 
-    # Clean up old ISOs (keep only last 3)
-    echo ""
-    echo -e "${YELLOW}→${NC} Cleaning up old ISOs (keeping last 3)..."
-    ls -t "$OUTPUT_DIR"/*.iso | tail -n +4 | xargs rm -f 2>/dev/null || true
-
     # Convert WSL path to Windows path for user convenience
-    WIN_PATH=$(wslpath -w "$ISO_FILE" 2>/dev/null || echo "$ISO_FILE")
+    WIN_PATH=$(wslpath -w "$ISO_FILE")
 
     echo ""
     echo -e "${GREEN}╔═══════════════════════════════════════════════════════════╗${NC}"
@@ -420,19 +335,27 @@ if [ -f "$ISO_FILE" ]; then
     echo "  Windows path: $WIN_PATH"
     echo "  Size: $ISO_SIZE"
     echo ""
-    echo "Performance Info:"
-    if [ "$USE_CACHED_IMAGE" = "yes" ]; then
-        echo -e "  ${GREEN}✓${NC} Used cached Docker image"
-    else
-        echo -e "  ${YELLOW}⚠${NC} Used base image (run ./build-docker-image.sh for faster builds)"
-    fi
-    echo -e "  ${GREEN}✓${NC} Package cache enabled at: $CACHE_DIR"
-    echo ""
     echo "Next steps:"
     echo ""
-    echo "  1. Use this ISO in VirtualBox"
+    echo "  1. Open VirtualBox on Windows"
     echo ""
-    echo "  2. Boot the VM and run: install-arch"
+    echo "  2. Create new VM:"
+    echo "     - Name: CustomOS"
+    echo "     - Type: Linux"
+    echo "     - Version: Arch Linux (64-bit)"
+    echo "     - RAM: 4GB (minimum 2GB)"
+    echo "     - Disk: 40GB+"
+    echo ""
+    echo "  3. In VM Settings → Storage:"
+    echo "     - Click 'Empty' CD drive"
+    echo "     - Click disk icon → Choose disk file"
+    echo "     - Select: $WIN_PATH"
+    echo ""
+    echo "  4. Start VM and run: install-arch"
+    echo ""
+    echo "  5. Answer prompts and wait 15-20 minutes"
+    echo ""
+    echo "  6. Reboot into your fully configured Arch Linux!"
     echo ""
 else
     echo ""
@@ -443,7 +366,15 @@ else
     echo -e "${RED}✗${NC} ISO build failed!"
     echo ""
     echo "The build failed inside the Docker container."
-    echo "Check the error messages above for details."
+    echo "Common causes:"
+    echo "  • Network timeout downloading packages (most likely)"
+    echo "  • Slow or unstable internet connection"
+    echo "  • Mirror server issues"
+    echo ""
+    echo "Solutions:"
+    echo "  1. Try running ./build-iso-docker.sh again (will use faster mirrors)"
+    echo "  2. Check your internet connection"
+    echo "  3. Try again later when mirrors are less busy"
     echo ""
     exit 1
 fi

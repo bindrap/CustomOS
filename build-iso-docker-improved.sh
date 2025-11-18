@@ -42,7 +42,7 @@ EOF
 echo -e "${NC}"
 
 ISO_NAME="parteek-arch"
-ISO_VERSION=$(date +%Y.%m.%d-%H%M)
+ISO_VERSION=$(date +%Y.%m.%d)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUTPUT_DIR="$SCRIPT_DIR/iso-output"
 CACHE_DIR="$HOME/.cache/archiso-pkgs"
@@ -275,16 +275,14 @@ echo "→ Creating install-arch command..."
 mkdir -p airootfs/usr/local/bin
 cat > airootfs/usr/local/bin/install-arch << "EOFINSTALL"
 #!/bin/bash
-cd /root/custom-setup || exit 1
-chmod +x install-auto.sh
-exec bash ./install-auto.sh
+cd /root/custom-setup
+exec ./install-auto.sh
 EOFINSTALL
 chmod +x airootfs/usr/local/bin/install-arch
 
-# Verify install-arch was created and is executable
+# Verify install-arch was created
 if [ -f airootfs/usr/local/bin/install-arch ]; then
     echo "  ✓ install-arch command created"
-    ls -la airootfs/usr/local/bin/install-arch | grep -q "x" && echo "  ✓ install-arch is executable" || echo "  ! WARNING: install-arch not executable"
 else
     echo "  ! WARNING: install-arch command failed to create"
 fi
@@ -297,22 +295,6 @@ git
 neovim
 htop
 EOFPKG
-
-# Set proper permissions in profiledef.sh
-echo "→ Configuring file permissions in profiledef.sh..."
-# Append file_permissions array to profiledef.sh to ensure permissions persist in the ISO
-cat >> profiledef.sh << "EOFPERMS"
-
-# File permissions that will be set in the live environment
-file_permissions=(
-  ["/usr/local/bin/install-arch"]="0:0:755"
-  ["/root/custom-setup/install.sh"]="0:0:755"
-  ["/root/custom-setup/install-auto.sh"]="0:0:755"
-  ["/root/custom-setup/post-install.sh"]="0:0:755"
-  ["/root"]="0:0:750"
-)
-EOFPERMS
-echo "  ✓ File permissions configured"
 
 # Customize ISO label
 ISO_LABEL=$(echo "${ISO_NAME}" | tr "[:lower:]" "[:upper:]")
@@ -396,8 +378,8 @@ fi
 '
 
 # Check if build succeeded (outside Docker container)
-ISO_FILE=$(ls -t "$OUTPUT_DIR"/*.iso 2>/dev/null | head -1)
-if [ -f "$ISO_FILE" ]; then
+if [ -f "$OUTPUT_DIR"/*.iso ]; then
+    ISO_FILE=$(ls -t "$OUTPUT_DIR"/*.iso | head -1)
     ISO_SIZE=$(du -h "$ISO_FILE" | cut -f1)
 
     # Clean up old ISOs (keep only last 3)

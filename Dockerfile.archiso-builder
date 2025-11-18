@@ -1,0 +1,27 @@
+# Arch ISO Builder Docker Image
+# Pre-configured environment for building Arch Linux ISOs
+# This eliminates the need to download and install archiso on every build
+
+FROM archlinux:latest
+
+# Update system and configure fast mirrors
+RUN pacman -Sy --noconfirm reflector && \
+    reflector --country US,CA --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist && \
+    pacman -Syu --noconfirm
+
+# Enable parallel downloads for faster package installation
+RUN sed -i 's/#ParallelDownloads = 5/ParallelDownloads = 10/' /etc/pacman.conf
+
+# Install archiso and required tools
+RUN pacman -S --needed --noconfirm archiso git
+
+# Set working directory
+WORKDIR /workspace
+
+# Label the image
+LABEL maintainer="Parteek"
+LABEL description="Arch Linux ISO builder environment"
+LABEL version="1.0"
+
+# Default command
+CMD ["/bin/bash"]
