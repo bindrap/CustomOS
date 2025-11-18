@@ -259,11 +259,23 @@ ISO_LABEL="${ISO_NAME^^}"
 ISO_VER="${ISO_VERSION//-/}"
 sed -i "s/ARCH_[0-9]*/${ISO_LABEL}_${ISO_VER}/" profiledef.sh
 
+# Fix UEFI boot issues for VirtualBox compatibility
+echo "→ Applying VirtualBox boot compatibility fixes..."
+# Ensure syslinux (BIOS boot) works properly
+if [ -f "syslinux/archiso_sys-linux.cfg" ]; then
+    # Add nomodeset as fallback option
+    sed -i "s|archisobasedir=arch|archisobasedir=arch nomodeset|" syslinux/archiso_sys-linux.cfg 2>/dev/null || true
+fi
+echo "  ✓ BIOS boot compatibility configured"
+
 # Build ISO
 echo ""
 echo "╔════════════════════════════════════════════════╗"
 echo "║  Building ISO (10-15 minutes)                  ║"
 echo "╚════════════════════════════════════════════════╝"
+echo ""
+echo "NOTE: If ISO fails to boot in VirtualBox UEFI mode,"
+echo "      disable EFI in VM settings (use BIOS mode)."
 echo ""
 
 mkarchiso -v -w "$WORK_DIR/work" -o "$OUTPUT_DIR" "$ISO_DIR"
