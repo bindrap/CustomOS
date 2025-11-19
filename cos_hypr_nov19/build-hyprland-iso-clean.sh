@@ -412,10 +412,11 @@ file_permissions=(
 )
 EOFPERMS
 
-# Customize ISO label
-ISO_LABEL="${ISO_NAME^^}"
-ISO_VER="${ISO_VERSION//-/}"
-sed -i "s/ARCH_[0-9]*/${ISO_LABEL}_${ISO_VER}/" profiledef.sh
+# Customize ISO label (max 32 chars)
+# Use short label to avoid "volid too long" error
+SHORT_DATE=$(date +%y%m%d)
+ISO_LABEL="HYPR_${SHORT_DATE}"
+sed -i "s/ARCH_[0-9]*/${ISO_LABEL}/" profiledef.sh
 
 # Build ISO
 echo ""

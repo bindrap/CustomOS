@@ -62,9 +62,10 @@ if [ -f "$DISK_FILE" ]; then
     echo "Options:"
     echo "  1. Use existing disk (boot installed system)"
     echo "  2. Delete and create new disk (fresh install)"
-    echo "  3. Cancel"
+    echo "  3. Delete disk and exit (cleanup)"
+    echo "  4. Cancel"
     echo ""
-    read -p "Choice (1/2/3): " CHOICE
+    read -p "Choice (1/2/3/4): " CHOICE
 
     case $CHOICE in
         1)
@@ -75,6 +76,21 @@ if [ -f "$DISK_FILE" ]; then
             echo -e "${YELLOW}→${NC} Deleting old disk..."
             rm -f "$DISK_FILE"
             BOOT_MODE="cdrom"
+            ;;
+        3)
+            echo -e "${YELLOW}→${NC} Deleting disk..."
+            rm -f "$DISK_FILE"
+            echo -e "${GREEN}✓${NC} Disk deleted"
+
+            # Check if directory is empty and remove it
+            if [ -z "$(ls -A "$DISK_DIR" 2>/dev/null)" ]; then
+                rm -rf "$DISK_DIR"
+                echo -e "${GREEN}✓${NC} Disk directory removed"
+            fi
+
+            echo ""
+            echo "Use ${BLUE}bash cleanup-qemu.sh${NC} to delete all virtual disks"
+            exit 0
             ;;
         *)
             exit 0

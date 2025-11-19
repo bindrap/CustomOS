@@ -40,6 +40,41 @@ bash test-iso-qemu-install.sh
 2. Choose option 1 to boot installed system
 3. Test Hyprland on the installed system
 
+## Managing Virtual Disks
+
+**List all virtual disks:**
+```bash
+cd cos_hypr_nov19
+bash list-qemu-disks.sh
+```
+
+Shows all virtual disks with their sizes and last modified times.
+
+**Delete all virtual disks:**
+```bash
+cd cos_hypr_nov19
+bash cleanup-qemu.sh
+```
+
+This will:
+- Show all disks and total size
+- Ask for confirmation
+- Delete all `.qcow2` files
+- Remove the `qemu-disks` directory
+- Free up disk space
+
+**Delete single disk (interactive):**
+```bash
+cd cos_hypr_nov19
+bash test-iso-qemu-install.sh
+```
+Then choose option 3 "Delete disk and exit"
+
+**Where are disks stored:**
+- Location: `cos_hypr_nov19/qemu-disks/`
+- Files: `*.qcow2` format
+- Default: `hyprland-test.qcow2` (50GB virtual size)
+
 ## Manual QEMU Commands
 
 **Basic ISO test:**
@@ -170,13 +205,16 @@ sudo chmod 666 /dev/kvm
 - Try `-vga std` instead of `-vga virtio`
 - Or `-vga qxl`
 
-## Files Created
+## Scripts and Files
 
 | File | Purpose |
 |------|---------|
-| `test-iso-qemu.sh` | Quick ISO boot test |
-| `test-iso-qemu-install.sh` | Full installation test with disk |
-| `qemu-disks/` | Virtual disk files (created on first install test) |
+| `test-iso-qemu.sh` | Quick ISO boot test (no installation) |
+| `test-iso-qemu-install.sh` | Full installation test with virtual disk |
+| `list-qemu-disks.sh` | List all virtual disks and sizes |
+| `cleanup-qemu.sh` | Delete all virtual disks (frees space) |
+| `qemu-disks/` | Virtual disk storage directory |
+| `qemu-disks/*.qcow2` | Virtual disk files (50GB each) |
 
 ## Next Steps
 
