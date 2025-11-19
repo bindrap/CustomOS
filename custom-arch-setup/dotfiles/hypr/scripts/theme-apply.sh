@@ -37,7 +37,9 @@ general {
 }
 
 decoration {
-    col.shadow = $SHADOW_COLOR
+    shadow {
+        color = $SHADOW_COLOR
+    }
 }
 
 # Theme color variables
