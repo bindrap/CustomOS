@@ -70,7 +70,7 @@ fi
 echo ""
 echo -e "${YELLOW}QEMU Configuration:${NC}"
 echo "  Memory: 4GB"
-echo "  CPUs: 2 cores"
+echo "  CPUs: 4 cores"
 echo "  Graphics: virtio-gpu (hardware acceleration)"
 echo "  Display: SDL with OpenGL"
 echo "  KVM: $([ $KVM_AVAILABLE -eq 1 ] && echo 'Enabled' || echo 'Disabled')"
@@ -91,7 +91,7 @@ echo ""
 QEMU_CMD="qemu-system-x86_64"
 QEMU_ARGS=(
     -m 4G
-    -smp 2
+    -smp 4
     -cdrom "$ISO_FILE"
     -boot d
     -vga virtio

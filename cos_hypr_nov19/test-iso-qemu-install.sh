@@ -124,7 +124,7 @@ fi
 echo ""
 echo -e "${YELLOW}QEMU Configuration:${NC}"
 echo "  Memory: 4GB"
-echo "  CPUs: 2 cores"
+echo "  CPUs: 4 cores"
 echo "  Disk: $DISK_SIZE (qcow2)"
 echo "  Graphics: virtio-gpu (hardware acceleration)"
 echo "  Display: SDL with OpenGL"
@@ -133,12 +133,18 @@ echo "  Boot: $([ "$BOOT_MODE" = "cdrom" ] && echo 'CD-ROM (install mode)' || ec
 echo ""
 
 if [ "$BOOT_MODE" = "cdrom" ]; then
-    echo -e "${CYAN}Installation Steps:${NC}"
+    echo -e "${CYAN}Installation Mode - First Run:${NC}"
     echo "  1. QEMU will boot from ISO"
     echo "  2. Run: install-arch"
     echo "  3. Follow installation prompts"
     echo "  4. After install completes, close QEMU"
     echo "  5. Run this script again to boot installed system"
+    echo ""
+else
+    echo -e "${CYAN}Boot Installed System:${NC}"
+    echo "  • Booting from virtual disk"
+    echo "  • ISO will not be attached"
+    echo "  • To reinstall, choose option 2 next time"
     echo ""
 fi
 
@@ -157,7 +163,7 @@ echo ""
 QEMU_CMD="qemu-system-x86_64"
 QEMU_ARGS=(
     -m 4G
-    -smp 2
+    -smp 4
     -drive "file=$DISK_FILE,format=qcow2,if=virtio"
     -vga virtio
     -display sdl,gl=on

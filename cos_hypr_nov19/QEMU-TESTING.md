@@ -82,7 +82,7 @@ Then choose option 3 "Delete disk and exit"
 qemu-system-x86_64 \
   -enable-kvm \
   -m 4G \
-  -smp 2 \
+  -smp 4 \
   -cdrom iso-output/hyprland-custom-*.iso \
   -boot d \
   -vga virtio \
@@ -94,14 +94,25 @@ qemu-system-x86_64 \
 # Create disk
 qemu-img create -f qcow2 hyprland.qcow2 50G
 
-# Boot with disk
+# Boot with disk (first run - install from ISO)
 qemu-system-x86_64 \
   -enable-kvm \
   -m 4G \
-  -smp 2 \
+  -smp 4 \
   -drive file=hyprland.qcow2,format=qcow2,if=virtio \
   -cdrom iso-output/hyprland-custom-*.iso \
   -boot d \
+  -vga virtio \
+  -display sdl,gl=on \
+  -netdev user,id=net0 \
+  -device virtio-net-pci,netdev=net0
+
+# Boot from disk (after install - no ISO needed)
+qemu-system-x86_64 \
+  -enable-kvm \
+  -m 4G \
+  -smp 4 \
+  -drive file=hyprland.qcow2,format=qcow2,if=virtio \
   -vga virtio \
   -display sdl,gl=on \
   -netdev user,id=net0 \
@@ -159,11 +170,13 @@ sudo usermod -a -G kvm $USER
 |---------|---------|
 | `-enable-kvm` | Hardware acceleration (Linux only) |
 | `-m 4G` | 4GB RAM for the VM |
-| `-smp 2` | 2 CPU cores |
+| `-smp 4` | 4 CPU cores (better performance) |
 | `-vga virtio` | virtio-gpu for better graphics |
 | `-display sdl,gl=on` | SDL display with OpenGL |
 | `-netdev user` | NAT networking |
 | `-drive ... if=virtio` | virtio disk (faster than IDE/SATA) |
+| `-cdrom ...` | Attach ISO (only for installation) |
+| `-boot d` | Boot from CD-ROM first |
 
 ## Performance Tips
 
