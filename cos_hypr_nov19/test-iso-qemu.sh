@@ -87,6 +87,19 @@ echo -e "${BLUE}Starting QEMU...${NC}"
 echo -e "${YELLOW}Tip: Press Ctrl+Alt+G to release mouse/keyboard${NC}"
 echo ""
 
+# Find UEFI firmware
+OVMF_CODE="/usr/share/OVMF/OVMF_CODE.fd"
+
+# Check for OVMF (UEFI firmware) - optional for quick test
+if [ -f "$OVMF_CODE" ]; then
+    echo -e "${GREEN}✓${NC} UEFI firmware found"
+    USE_UEFI=1
+else
+    echo -e "${YELLOW}⚠${NC} UEFI firmware not found (legacy BIOS mode)"
+    echo "  Install with: sudo apt install ovmf"
+    USE_UEFI=0
+fi
+
 # Build QEMU command
 QEMU_CMD="qemu-system-x86_64"
 QEMU_ARGS=(
@@ -96,7 +109,13 @@ QEMU_ARGS=(
     -boot d
     -vga virtio
     -display sdl,gl=on
+    -name "Hyprland ISO - Quick Test"
 )
+
+# Add UEFI if available (read-only, no vars needed for live boot)
+if [ $USE_UEFI -eq 1 ]; then
+    QEMU_ARGS=(-drive "if=pflash,format=raw,readonly=on,file=$OVMF_CODE" "${QEMU_ARGS[@]}")
+fi
 
 # Add KVM if available
 if [ $KVM_AVAILABLE -eq 1 ]; then

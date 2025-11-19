@@ -159,21 +159,50 @@ echo -e "${BLUE}Starting QEMU...${NC}"
 echo -e "${YELLOW}Tip: Press Ctrl+Alt+G to release mouse/keyboard${NC}"
 echo ""
 
+# Find UEFI firmware
+OVMF_CODE="/usr/share/OVMF/OVMF_CODE.fd"
+OVMF_VARS_TEMPLATE="/usr/share/OVMF/OVMF_VARS.fd"
+OVMF_VARS="$DISK_DIR/OVMF_VARS.fd"
+
+# Check for OVMF (UEFI firmware)
+if [ ! -f "$OVMF_CODE" ]; then
+    echo -e "${RED}✗${NC} UEFI firmware not found!"
+    echo "Install with: sudo apt install ovmf"
+    exit 1
+fi
+
+# Create UEFI variables file if needed (stores boot settings)
+if [ ! -f "$OVMF_VARS" ]; then
+    echo -e "${YELLOW}→${NC} Creating UEFI variables file..."
+    cp "$OVMF_VARS_TEMPLATE" "$OVMF_VARS"
+fi
+
 # Build QEMU command
 QEMU_CMD="qemu-system-x86_64"
 QEMU_ARGS=(
     -m 4G
     -smp 4
+    # UEFI firmware (required for EFI boot)
+    -drive "if=pflash,format=raw,readonly=on,file=$OVMF_CODE"
+    -drive "if=pflash,format=raw,file=$OVMF_VARS"
+    # Virtual disk
     -drive "file=$DISK_FILE,format=qcow2,if=virtio"
+    # Graphics
     -vga virtio
     -display sdl,gl=on
+    # Network
     -netdev user,id=net0
     -device virtio-net-pci,netdev=net0
+    # Better window title
+    -name "Hyprland Test - $([ "$BOOT_MODE" = "cdrom" ] && echo 'Installation' || echo 'Installed System')"
 )
 
 # Add CD-ROM if installing
 if [ "$BOOT_MODE" = "cdrom" ]; then
     QEMU_ARGS+=(-cdrom "$ISO_FILE" -boot d)
+else
+    # Boot from disk only
+    QEMU_ARGS+=(-boot c)
 fi
 
 # Add KVM if available
