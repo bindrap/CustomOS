@@ -246,10 +246,25 @@ echo "$USERNAME:$PASSWORD" | chpasswd
 sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
 # Install bootloader
+echo "Installing systemd-boot bootloader..."
 bootctl install
+if [ \$? -ne 0 ]; then
+    echo "ERROR: Bootloader installation failed!"
+    echo "Check if /boot is mounted correctly"
+    mount | grep /boot
+    exit 1
+fi
+echo "Bootloader installed successfully"
 
 # Create boot entries
 ROOT_UUID=\$(blkid -s UUID -o value ${DISK_P}3)
+echo "Root UUID: \$ROOT_UUID"
+
+if [ -z "\$ROOT_UUID" ]; then
+    echo "ERROR: Could not determine root partition UUID!"
+    echo "Partition ${DISK_P}3 may not exist"
+    exit 1
+fi
 
 # Main boot entry with optimized parameters
 cat > /boot/loader/entries/arch.conf << EOF
@@ -282,6 +297,26 @@ timeout 5
 console-mode keep
 editor no
 EOF
+
+# Verify bootloader installation
+echo "Verifying bootloader installation..."
+if [ ! -f /boot/loader/loader.conf ]; then
+    echo "ERROR: Bootloader config not created!"
+    exit 1
+fi
+
+if [ ! -f /boot/loader/entries/arch.conf ]; then
+    echo "ERROR: Boot entry not created!"
+    exit 1
+fi
+
+if [ ! -f /boot/vmlinuz-linux ]; then
+    echo "ERROR: Kernel not found in /boot!"
+    exit 1
+fi
+
+echo "Bootloader verification passed"
+ls -la /boot/loader/entries/
 
 # Enable NetworkManager
 systemctl enable NetworkManager
