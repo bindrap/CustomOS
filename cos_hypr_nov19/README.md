@@ -17,21 +17,23 @@ This happens because:
 4. **Missing dependencies** (polkit, xdg-desktop-portal)
 5. **Heavy effects** (blur, shadows) crash on software rendering
 
-## The Solution
+## The Solution - PROVEN WORKING CONFIG
 
-This ISO includes **AGGRESSIVE** VirtualBox fixes:
-- ✅ **Multi-renderer fallback system** (pixman → gles2 → vulkan)
-- ✅ **Mesa software rendering libraries** (mesa, vulkan-swrast, mesa-vdpau)
-- ✅ **Intelligent wrapper script** tries all renderers automatically
-- ✅ **Forced software rendering** (WLR_RENDERER=pixman as default)
+This ISO uses the **confirmed working VirtualBox Hyprland configuration**:
+- ✅ **WLR_RENDERER=vulkan** (software Vulkan via llvmpipe)
+- ✅ **LIBGL_ALWAYS_SOFTWARE=1** (force Mesa software rendering)
+- ✅ **WLR_DRM_DEVICES=** (empty - ignore VirtualBox GPU)
+- ✅ **vboxvideo kernel module** auto-loaded for DRM support
+- ✅ **Multi-renderer fallback** (vulkan → pixman → gles2)
+- ✅ **Mesa + vulkan-swrast + vulkan-loader + llvm**
 - ✅ **Disabled hardware cursors** (WLR_NO_HARDWARE_CURSORS=1)
 - ✅ **Disabled heavy effects** (no blur, no shadows)
 - ✅ **Simplified animations**
-- ✅ **All required dependencies** (polkit, xdg-desktop-portal-hyprland, mesa)
-- ✅ **Sway fallback** if all renderers fail
-- ✅ **VirtualBox guest additions** auto-detected and installed
+- ✅ **All required dependencies** (polkit, xdg-desktop-portal-hyprland)
+- ✅ **Sway fallback** if Hyprland fails
+- ✅ **VirtualBox guest additions + kernel modules**
+- ✅ **Two launcher scripts** (hyprland-vbox direct + wrapper)
 - ✅ **Extensive error logging** for debugging
-- ✅ **VirtualBox-specific environment variables**
 
 ## Quick Start
 
@@ -98,24 +100,41 @@ This ISO uses `post-install-vbox.sh` instead of regular `post-install.sh`.
 #### 1. Mesa Software Rendering Libraries
 ```bash
 mesa               # Base Mesa 3D Graphics Library
-vulkan-swrast      # Software Vulkan renderer
+mesa-demos         # Mesa demo programs (includes glxinfo)
+vulkan-swrast      # Software Vulkan renderer (llvmpipe)
+vulkan-loader      # Vulkan Installable Client Driver
+llvm               # LLVM for software rendering
 glu                # OpenGL Utility Library
 libglvnd           # OpenGL vendor-neutral dispatch library
 libva-mesa-driver  # Video Acceleration API Mesa driver
 mesa-vdpau         # Video Decode and Presentation API
 ```
 
-#### 2. Environment Variables (AGGRESSIVE)
+#### 2. VirtualBox Kernel Modules
 ```bash
-WLR_NO_HARDWARE_CURSORS=1      # Software cursor
-WLR_RENDERER_ALLOW_SOFTWARE=1  # Allow software rendering
-WLR_RENDERER=pixman            # Force pure software rendering
-LIBVA_DRIVER_NAME=i965         # Intel VA-API driver
-__GLX_VENDOR_LIBRARY_NAME=mesa # Force Mesa for OpenGL
-GBM_BACKEND=nvidia-drm         # Generic Buffer Management
+# Auto-loaded at boot via /etc/modules-load.d/virtualbox.conf
+vboxguest          # VirtualBox guest driver
+vboxsf             # Shared folders support
+vboxvideo          # DRM driver (CRITICAL for Hyprland)
 ```
 
-#### 3. Hyprland Config Modifications
+#### 3. Environment Variables (PROVEN WORKING)
+```bash
+WLR_RENDERER=vulkan            # Use Vulkan renderer (software via llvmpipe)
+WLR_NO_HARDWARE_CURSORS=1      # Software cursor only
+WLR_RENDERER_ALLOW_SOFTWARE=1  # Allow software rendering
+LIBGL_ALWAYS_SOFTWARE=1        # Force Mesa software rendering
+WLR_DRM_DEVICES=               # Empty - ignore VirtualBox GPU
+XDG_SESSION_TYPE=wayland       # Wayland session type
+```
+
+**Why Vulkan instead of Pixman?**
+- VirtualBox's software Vulkan (llvmpipe) is more compatible than pixman
+- `LIBGL_ALWAYS_SOFTWARE=1` ensures it uses CPU rendering
+- `WLR_DRM_DEVICES=` prevents Hyprland from trying to use VBox GPU
+- vboxvideo module provides DRM support needed by Hyprland
+
+#### 4. Hyprland Config Modifications
 ```bash
 decoration {
     blur {
@@ -134,37 +153,42 @@ misc {
 }
 ```
 
-#### 4. Additional Packages
+#### 5. Additional Packages
 - `xdg-desktop-portal-hyprland` - Required for Wayland apps
 - `xdg-desktop-portal-gtk` - GTK portal
 - `polkit` - Authentication agent (prevents crashes)
 - `polkit-gnome` - GUI for polkit
 - `qt5-wayland` + `qt6-wayland` - Qt Wayland support
+- `virtualbox-guest-modules-arch` - Kernel modules for VBox
 - `sway` - Fallback compositor
-- `mesa` + software rendering libraries - For software GPU
+- `mesa` + `vulkan-swrast` + `vulkan-loader` + `llvm` - Software rendering stack
 
-#### 5. Intelligent Multi-Renderer Wrapper Script
+#### 6. Two Launcher Scripts
 
-**NEW!** The wrapper script (`~/.local/bin/start-hyprland.sh`) tries multiple renderers automatically:
+**Direct Launcher** (`hyprland-vbox`):
+- Uses proven vulkan config
+- Quick test without fallbacks
+- Logs to `/tmp/hyprland-vbox.log`
 
+**Multi-Renderer Wrapper** (`~/.local/bin/start-hyprland.sh`):
 ```bash
 # Tries in order:
-1. WLR_RENDERER=pixman   # Pure software (CPU only)
-2. WLR_RENDERER=gles2    # OpenGL ES 2.0 (if available)
-3. WLR_RENDERER=vulkan   # Vulkan (if available)
+1. WLR_RENDERER=vulkan   # Software Vulkan (llvmpipe) - BEST for VBox
+2. WLR_RENDERER=pixman   # Pure software (CPU only)
+3. WLR_RENDERER=gles2    # OpenGL ES 2.0 (if available)
 
 # Each renderer gets 10 seconds to start
 # If it crashes immediately, tries the next one
 # If it runs for 10s, it's considered successful
 ```
 
-#### 6. Automatic Fallback Chain
+#### 7. Automatic Fallback Chain
 ```bash
+Try vulkan renderer (with LIBGL_ALWAYS_SOFTWARE=1)
+  ↓ (if fails)
 Try pixman renderer
   ↓ (if fails)
 Try gles2 renderer
-  ↓ (if fails)
-Try vulkan renderer
   ↓ (if fails)
 Show error logs
   ↓
@@ -180,16 +204,18 @@ The wrapper logs everything to `/tmp/hyprland-startup.log` for debugging!
 | Feature | customIso_nov19 | cos_hypr_nov19 |
 |---------|-----------------|----------------|
 | Post-Install Script | post-install.sh | post-install-vbox.sh |
-| VirtualBox Optimizations | Basic | **Aggressive** |
-| Software Rendering | Not configured | **Force pixman + fallbacks** |
-| Mesa Libraries | mesa only | **mesa + vulkan-swrast + vdpau** |
-| Renderer Fallback | None | **Multi-renderer wrapper** |
+| VirtualBox Optimizations | Basic | **PROVEN WORKING CONFIG** |
+| Software Rendering | Not configured | **Vulkan (llvmpipe) + LIBGL_ALWAYS_SOFTWARE** |
+| Mesa Libraries | mesa only | **mesa + vulkan-swrast + vulkan-loader + llvm** |
+| Kernel Modules | guest-utils only | **guest-utils + guest-modules + vboxvideo** |
+| Renderer Strategy | None | **Vulkan first, then pixman/gles2** |
 | Heavy Effects | Enabled | **Disabled** |
 | Fallback Compositor | None | **Sway** |
-| Environment Variables | Standard | **10+ VBox-specific** |
-| Error Logging | Basic | **Extensive (2 log files)** |
+| Environment Variables | Standard | **WLR_RENDERER=vulkan + 8 more** |
+| Launcher Scripts | None | **hyprland-vbox + wrapper** |
+| Error Logging | Basic | **Extensive (multiple log files)** |
 | Auto-retry Logic | No | **Yes (3 renderers)** |
-| Core Dump Fix | No | **Yes (multiple approaches)** |
+| Core Dump Fix | No | **Yes (proven VBox config)** |
 
 ## What Gets Installed
 

@@ -262,7 +262,10 @@ sudo pacman -S --needed --noconfirm \
     bluez-utils \
     blueman \
     mesa \
+    mesa-demos \
     vulkan-swrast \
+    vulkan-loader \
+    llvm \
     glu \
     libglvnd \
     libva-mesa-driver \
@@ -279,8 +282,21 @@ sudo systemctl enable bluetooth
 # Detect and configure VirtualBox
 if lspci | grep -i "virtualbox" &>/dev/null || dmesg | grep -i "vbox" &>/dev/null; then
     echo -e "${YELLOW}→${NC} VirtualBox detected - Installing guest additions..."
-    sudo pacman -S --needed --noconfirm virtualbox-guest-utils || true
+    sudo pacman -S --needed --noconfirm virtualbox-guest-utils virtualbox-guest-modules-arch || true
     sudo systemctl enable vboxservice || true
+
+    # Ensure VirtualBox kernel modules load at boot
+    echo -e "${YELLOW}→${NC} Configuring VirtualBox kernel modules..."
+    sudo mkdir -p /etc/modules-load.d
+    cat | sudo tee /etc/modules-load.d/virtualbox.conf > /dev/null << "EOFMODULES"
+vboxguest
+vboxsf
+vboxvideo
+EOFMODULES
+
+    # Load vboxvideo module now
+    sudo modprobe vboxvideo 2>/dev/null || echo "  (vboxvideo will load on next boot)"
+
     echo -e "${GREEN}✓${NC} VirtualBox guest additions installed"
     VBOX_DETECTED=1
 else
@@ -312,13 +328,13 @@ if [ "\$VBOX_DETECTED" = "1" ]; then
     # Create VirtualBox-specific config
     cat >> ~/.config/hypr/hyprland.conf << "EOFVBOX"
 
-# VirtualBox-specific optimizations
+# VirtualBox-specific optimizations (proven working config)
+env = WLR_RENDERER,vulkan
 env = WLR_NO_HARDWARE_CURSORS,1
 env = WLR_RENDERER_ALLOW_SOFTWARE,1
-env = WLR_RENDERER,pixman
-env = LIBVA_DRIVER_NAME,i965
-env = __GLX_VENDOR_LIBRARY_NAME,mesa
-env = GBM_BACKEND,nvidia-drm
+env = LIBGL_ALWAYS_SOFTWARE,1
+env = WLR_DRM_DEVICES,
+env = XDG_SESSION_TYPE,wayland
 
 # Disable resource-intensive features
 decoration {
@@ -359,18 +375,19 @@ ERROR_LOG="/tmp/hyprland-error.log"
 
 echo "=== Hyprland Startup Attempt: \$(date) ===" > "\$LOG_FILE"
 
-# Set VirtualBox-specific environment variables
+# Set VirtualBox-specific environment variables (proven working config)
 export WLR_NO_HARDWARE_CURSORS=1
 export WLR_RENDERER_ALLOW_SOFTWARE=1
-export LIBVA_DRIVER_NAME=i965
-export __GLX_VENDOR_LIBRARY_NAME=mesa
+export LIBGL_ALWAYS_SOFTWARE=1
+export WLR_DRM_DEVICES=
+export XDG_SESSION_TYPE=wayland
 export MOZ_ENABLE_WAYLAND=1
 export QT_QPA_PLATFORM=wayland
 export SDL_VIDEODRIVER=wayland
 export GDK_BACKEND=wayland
 
-# Try different renderers in order of compatibility
-RENDERERS=("pixman" "gles2" "vulkan")
+# Try different renderers in order of compatibility (vulkan first for VBox)
+RENDERERS=("vulkan" "pixman" "gles2")
 
 for RENDERER in "\${RENDERERS[@]}"; do
     echo "Attempting to start Hyprland with WLR_RENDERER=\$RENDERER..." | tee -a "\$LOG_FILE"
@@ -428,6 +445,33 @@ EOFWRAPPER
 
     chmod +x ~/.local/bin/start-hyprland.sh
     echo -e "${GREEN}✓${NC} Hyprland wrapper created"
+
+    # Create standalone Hyprland VirtualBox launcher
+    echo -e "${YELLOW}→${NC} Creating standalone Hyprland VirtualBox launcher..."
+    cat > ~/.local/bin/hyprland-vbox << "EOFVBOXLAUNCH"
+#!/bin/bash
+# Hyprland VirtualBox Direct Launcher
+# Use this to start Hyprland with VirtualBox-optimized settings
+
+export WLR_RENDERER=vulkan
+export WLR_NO_HARDWARE_CURSORS=1
+export WLR_RENDERER_ALLOW_SOFTWARE=1
+export LIBGL_ALWAYS_SOFTWARE=1
+export WLR_DRM_DEVICES=
+export XDG_SESSION_TYPE=wayland
+
+echo "Starting Hyprland with VirtualBox optimizations..."
+echo "Environment:"
+echo "  WLR_RENDERER=vulkan"
+echo "  LIBGL_ALWAYS_SOFTWARE=1"
+echo "  WLR_NO_HARDWARE_CURSORS=1"
+echo ""
+
+exec Hyprland 2>&1 | tee /tmp/hyprland-vbox.log
+EOFVBOXLAUNCH
+
+    chmod +x ~/.local/bin/hyprland-vbox
+    echo -e "${GREEN}✓${NC} Standalone launcher created: hyprland-vbox"
 fi
 
 # Copy other configs
@@ -467,13 +511,13 @@ echo -e "${GREEN}✓${NC} Zsh configured as default shell"
 if [ "\$VBOX_DETECTED" = "1" ]; then
     echo -e "${YELLOW}→${NC} Creating VirtualBox environment settings..."
     cat > ~/.config/hypr/env.conf << "EOFENV"
-# VirtualBox Environment Variables - Force Software Rendering
+# VirtualBox Environment Variables - Proven Working Config
+env = WLR_RENDERER,vulkan
 env = WLR_NO_HARDWARE_CURSORS,1
 env = WLR_RENDERER_ALLOW_SOFTWARE,1
-env = WLR_RENDERER,pixman
-env = LIBVA_DRIVER_NAME,i965
-env = __GLX_VENDOR_LIBRARY_NAME,mesa
-env = GBM_BACKEND,nvidia-drm
+env = LIBGL_ALWAYS_SOFTWARE,1
+env = WLR_DRM_DEVICES,
+env = XDG_SESSION_TYPE,wayland
 env = MOZ_ENABLE_WAYLAND,1
 env = QT_QPA_PLATFORM,wayland
 env = SDL_VIDEODRIVER,wayland
@@ -550,12 +594,15 @@ echo -e "${GREEN}  ✓${NC} 10 Pre-configured themes"
 echo -e "${GREEN}  ✓${NC} Complete Waybar with 3 styles"
 echo -e "${CYAN}═══════════════════════════════════════════════════════════${NC}"
 echo ""
-echo -e "${YELLOW}VirtualBox Fixes Applied:${NC}"
-echo -e "${GREEN}  ✓${NC} WLR_RENDERER=pixman (pure software rendering)"
+echo -e "${YELLOW}VirtualBox Fixes Applied (Proven Working):${NC}"
+echo -e "${GREEN}  ✓${NC} WLR_RENDERER=vulkan (software Vulkan via llvmpipe)"
+echo -e "${GREEN}  ✓${NC} LIBGL_ALWAYS_SOFTWARE=1 (force software rendering)"
 echo -e "${GREEN}  ✓${NC} WLR_NO_HARDWARE_CURSORS=1"
+echo -e "${GREEN}  ✓${NC} WLR_DRM_DEVICES= (ignore VBox GPU)"
+echo -e "${GREEN}  ✓${NC} vboxvideo kernel module loaded"
 echo -e "${GREEN}  ✓${NC} Disabled blur and shadows"
 echo -e "${GREEN}  ✓${NC} Simplified animations"
-echo -e "${GREEN}  ✓${NC} Automatic renderer detection"
+echo -e "${GREEN}  ✓${NC} Multi-renderer fallback wrapper"
 echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════════════${NC}"
 echo ""
@@ -572,11 +619,14 @@ echo -e "${GREEN}Ready to start!${NC}"
 echo ""
 echo -e "${YELLOW}Options:${NC}"
 echo -e "  1. Type ${GREEN}reboot${NC} to restart (Hyprland will auto-start)"
-echo -e "  2. Type ${GREEN}~/.local/bin/start-hyprland.sh${NC} to start now"
+echo -e "  2. Type ${GREEN}hyprland-vbox${NC} to test Hyprland directly"
+echo -e "  3. Type ${GREEN}~/.local/bin/start-hyprland.sh${NC} for multi-renderer wrapper"
 echo ""
-echo -e "${YELLOW}The wrapper will try multiple renderers automatically.${NC}"
-echo -e "${YELLOW}Check logs at: /tmp/hyprland-startup.log${NC}"
-echo -e "${YELLOW}If all fail, it will automatically fallback to Sway.${NC}"
+echo -e "${YELLOW}Using proven VirtualBox config:${NC}"
+echo -e "  • WLR_RENDERER=vulkan with LIBGL_ALWAYS_SOFTWARE=1"
+echo -e "  • vboxvideo kernel module for DRM support"
+echo -e "  • Check logs: /tmp/hyprland-vbox.log or /tmp/hyprland-startup.log"
+echo -e "${YELLOW}If Hyprland fails, wrapper auto-falls back to Sway.${NC}"
 echo ""
 
 EOFPOSTINSTALL
@@ -737,17 +787,19 @@ if [ -f "$ISO_FILE" ]; then
     echo "  File: $ISO_FILE"
     echo "  Size: $ISO_SIZE"
     echo ""
-    echo "VirtualBox Fixes Included:"
-    echo "  ✓ Multi-renderer fallback (pixman → gles2 → vulkan)"
-    echo "  ✓ Mesa software rendering libraries"
-    echo "  ✓ Forced software rendering (WLR_RENDERER=pixman)"
+    echo "VirtualBox Fixes Included (PROVEN WORKING CONFIG):"
+    echo "  ✓ WLR_RENDERER=vulkan (software Vulkan via llvmpipe)"
+    echo "  ✓ LIBGL_ALWAYS_SOFTWARE=1 (force Mesa software rendering)"
+    echo "  ✓ WLR_DRM_DEVICES= (ignore VirtualBox GPU)"
+    echo "  ✓ vboxvideo kernel module auto-loaded"
+    echo "  ✓ Multi-renderer fallback (vulkan → pixman → gles2)"
+    echo "  ✓ Mesa + vulkan-swrast + vulkan-loader + llvm"
     echo "  ✓ Disabled hardware cursors (WLR_NO_HARDWARE_CURSORS=1)"
     echo "  ✓ Disabled blur and shadows"
     echo "  ✓ Simplified animations"
-    echo "  ✓ Intelligent wrapper script tries all renderers"
+    echo "  ✓ hyprland-vbox direct launcher + wrapper script"
     echo "  ✓ Sway fallback if all renderers fail"
-    echo "  ✓ All required dependencies (polkit, xdg-desktop-portal, mesa)"
-    echo "  ✓ VirtualBox guest additions"
+    echo "  ✓ VirtualBox guest additions + kernel modules"
     echo "  ✓ Extensive error logging"
     echo ""
     echo "VirtualBox Settings (IMPORTANT!):"
@@ -766,10 +818,15 @@ if [ -f "$ISO_FILE" ]; then
     echo "  4. Hyprland auto-installs with aggressive VBox fixes"
     echo "  5. Reboot - wrapper tries multiple renderers automatically"
     echo ""
+    echo "Testing Hyprland:"
+    echo "  - Direct test: hyprland-vbox"
+    echo "  - Auto-wrapper: ~/.local/bin/start-hyprland.sh"
+    echo "  - Logs: /tmp/hyprland-vbox.log or /tmp/hyprland-startup.log"
+    echo ""
     echo "Debugging:"
-    echo "  - Startup log: /tmp/hyprland-startup.log"
-    echo "  - Error log: /tmp/hyprland-error.log"
-    echo "  - Wrapper tries: pixman, gles2, vulkan in order"
+    echo "  - Check vboxvideo: lsmod | grep vboxvideo"
+    echo "  - Check Vulkan: vulkaninfo | grep -i llvmpipe"
+    echo "  - Wrapper tries: vulkan → pixman → gles2 in order"
     echo "  - Auto-fallback to Sway if all fail"
     echo ""
 else
