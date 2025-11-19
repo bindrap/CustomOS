@@ -245,43 +245,89 @@ echo "$USERNAME:$PASSWORD" | chpasswd
 # Enable sudo for wheel group
 sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
-# Install bootloader
-bootctl install
+# Detect boot mode (UEFI or BIOS)
+if [ -d /sys/firmware/efi/efivars ]; then
+    BOOT_MODE="UEFI"
+    echo "Detected UEFI boot mode"
+else
+    BOOT_MODE="BIOS"
+    echo "Detected BIOS boot mode"
+fi
 
-# Create boot entries
+# Get root partition UUID
 ROOT_UUID=\$(blkid -s UUID -o value ${DISK_P}3)
+echo "Root UUID: \$ROOT_UUID"
 
-# Main boot entry with optimized parameters
-cat > /boot/loader/entries/arch.conf << EOF
+if [ -z "\$ROOT_UUID" ]; then
+    echo "ERROR: Could not determine root partition UUID!"
+    echo "Partition ${DISK_P}3 may not exist"
+    exit 1
+fi
+
+# Install bootloader based on boot mode
+if [ "\$BOOT_MODE" = "UEFI" ]; then
+    echo "Installing systemd-boot bootloader (UEFI)..."
+    bootctl install
+    if [ \$? -ne 0 ]; then
+        echo "ERROR: Bootloader installation failed!"
+        echo "Check if /boot is mounted correctly"
+        mount | grep /boot
+        exit 1
+    fi
+
+    # Create systemd-boot entries
+    cat > /boot/loader/entries/arch.conf << EOF
 title   CustomOS (Arch Linux)
 linux   /vmlinuz-linux
 initrd  /initramfs-linux.img
-options root=UUID=\$ROOT_UUID rw quiet splash loglevel=3 systemd.show_status=auto rd.udev.log_level=3
+options root=UUID=\$ROOT_UUID rw quiet splash loglevel=3
 EOF
 
-# Fallback boot entry
-cat > /boot/loader/entries/arch-fallback.conf << EOF
+    cat > /boot/loader/entries/arch-fallback.conf << EOF
 title   CustomOS (Arch Linux - Fallback)
 linux   /vmlinuz-linux
 initrd  /initramfs-linux-fallback.img
 options root=UUID=\$ROOT_UUID rw
 EOF
 
-# Safe mode entry for troubleshooting
-cat > /boot/loader/entries/arch-safe.conf << EOF
-title   CustomOS (Safe Mode)
-linux   /vmlinuz-linux
-initrd  /initramfs-linux.img
-options root=UUID=\$ROOT_UUID rw nomodeset i915.modeset=0 nouveau.modeset=0
-EOF
-
-# Bootloader configuration
-cat > /boot/loader/loader.conf << EOF
+    cat > /boot/loader/loader.conf << EOF
 default arch.conf
 timeout 5
 console-mode keep
 editor no
 EOF
+
+    echo "systemd-boot installed successfully"
+
+else
+    echo "Installing GRUB bootloader (BIOS)..."
+    pacman -S --needed --noconfirm grub
+
+    # Install GRUB to MBR
+    grub-install --target=i386-pc --recheck $DISK
+    if [ \$? -ne 0 ]; then
+        echo "ERROR: GRUB installation failed!"
+        exit 1
+    fi
+
+    # Generate GRUB config
+    grub-mkconfig -o /boot/grub/grub.cfg
+    if [ \$? -ne 0 ]; then
+        echo "ERROR: GRUB config generation failed!"
+        exit 1
+    fi
+
+    echo "GRUB installed successfully"
+fi
+
+# Verify kernel is installed
+if [ ! -f /boot/vmlinuz-linux ]; then
+    echo "ERROR: Kernel not found in /boot!"
+    exit 1
+fi
+
+echo "Bootloader installation verified"
+ls -la /boot/
 
 # Enable NetworkManager
 systemctl enable NetworkManager
