@@ -83,12 +83,13 @@ MOUNT_DIR="/tmp/qemu-disk-inspect"
 sudo mkdir -p "$MOUNT_DIR"
 
 echo -e "${YELLOW}→${NC} Attempting to mount root partition..."
-if sudo mount /dev/nbd0p3 "$MOUNT_DIR" 2>/dev/null; then
+# New partition layout: p1=BIOS boot, p2=EFI/boot, p3=swap, p4=root
+if sudo mount /dev/nbd0p4 "$MOUNT_DIR" 2>/dev/null; then
     echo -e "${GREEN}✓${NC} Root partition mounted at $MOUNT_DIR"
     echo ""
 
-    # Check if boot partition is separate
-    if sudo mount /dev/nbd0p1 "$MOUNT_DIR/boot" 2>/dev/null; then
+    # Check if boot partition is separate (partition 2 is EFI/boot)
+    if sudo mount /dev/nbd0p2 "$MOUNT_DIR/boot" 2>/dev/null; then
         echo -e "${GREEN}✓${NC} Boot partition mounted"
     fi
 

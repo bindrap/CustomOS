@@ -142,25 +142,34 @@ else
     DISK_P="${DISK}"
 fi
 
-# Partition disk
+# Partition disk (hybrid scheme supporting both BIOS and UEFI)
 echo -e "${YELLOW}→${NC} Partitioning disk..."
 sgdisk -Z $DISK
-sgdisk -n 1:0:+512M -t 1:ef00 $DISK
-sgdisk -n 2:0:+4G -t 2:8200 $DISK
-sgdisk -n 3:0:0 -t 3:8300 $DISK
 
-# Format partitions
+# Create partitions for both BIOS and UEFI boot support
+sgdisk -n 1:0:+1M -t 1:ef02 $DISK      # BIOS boot partition (for GRUB)
+sgdisk -n 2:0:+512M -t 2:ef00 $DISK    # EFI System Partition (for systemd-boot)
+sgdisk -n 3:0:+4G -t 3:8200 $DISK      # Swap
+sgdisk -n 4:0:0 -t 4:8300 $DISK        # Root filesystem
+
+echo "Partition layout:"
+echo "  1: BIOS boot (1MB) - for GRUB in BIOS mode"
+echo "  2: EFI System (512MB) - for systemd-boot in UEFI mode"
+echo "  3: Swap (4GB)"
+echo "  4: Root (remaining space)"
+
+# Format partitions (skip partition 1, it's used raw by GRUB)
 echo -e "${YELLOW}→${NC} Formatting partitions..."
-mkfs.fat -F32 ${DISK_P}1
-mkswap ${DISK_P}2
-swapon ${DISK_P}2
-mkfs.ext4 -F ${DISK_P}3
+mkfs.fat -F32 ${DISK_P}2
+mkswap ${DISK_P}3
+swapon ${DISK_P}3
+mkfs.ext4 -F ${DISK_P}4
 
 # Mount filesystems
 echo -e "${YELLOW}→${NC} Mounting filesystems..."
-mount ${DISK_P}3 /mnt
+mount ${DISK_P}4 /mnt
 mkdir -p /mnt/boot
-mount ${DISK_P}1 /mnt/boot
+mount ${DISK_P}2 /mnt/boot
 
 # Install base system
 echo -e "${YELLOW}→${NC} Installing base system..."
@@ -254,13 +263,13 @@ else
     echo "Detected BIOS boot mode"
 fi
 
-# Get root partition UUID
-ROOT_UUID=\$(blkid -s UUID -o value ${DISK_P}3)
+# Get root partition UUID (now partition 4)
+ROOT_UUID=\$(blkid -s UUID -o value ${DISK_P}4)
 echo "Root UUID: \$ROOT_UUID"
 
 if [ -z "\$ROOT_UUID" ]; then
     echo "ERROR: Could not determine root partition UUID!"
-    echo "Partition ${DISK_P}3 may not exist"
+    echo "Partition ${DISK_P}4 may not exist"
     exit 1
 fi
 
