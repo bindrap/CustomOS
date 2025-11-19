@@ -262,7 +262,6 @@ sudo pacman -S --needed --noconfirm \
     bluez-utils \
     blueman \
     mesa \
-    lib32-mesa \
     vulkan-swrast \
     glu \
     libglvnd \

@@ -21,7 +21,7 @@ This happens because:
 
 This ISO includes **AGGRESSIVE** VirtualBox fixes:
 - ✅ **Multi-renderer fallback system** (pixman → gles2 → vulkan)
-- ✅ **Mesa software rendering libraries** (mesa, lib32-mesa, vulkan-swrast)
+- ✅ **Mesa software rendering libraries** (mesa, vulkan-swrast, mesa-vdpau)
 - ✅ **Intelligent wrapper script** tries all renderers automatically
 - ✅ **Forced software rendering** (WLR_RENDERER=pixman as default)
 - ✅ **Disabled hardware cursors** (WLR_NO_HARDWARE_CURSORS=1)
@@ -98,7 +98,6 @@ This ISO uses `post-install-vbox.sh` instead of regular `post-install.sh`.
 #### 1. Mesa Software Rendering Libraries
 ```bash
 mesa               # Base Mesa 3D Graphics Library
-lib32-mesa         # 32-bit Mesa libraries
 vulkan-swrast      # Software Vulkan renderer
 glu                # OpenGL Utility Library
 libglvnd           # OpenGL vendor-neutral dispatch library
@@ -183,7 +182,7 @@ The wrapper logs everything to `/tmp/hyprland-startup.log` for debugging!
 | Post-Install Script | post-install.sh | post-install-vbox.sh |
 | VirtualBox Optimizations | Basic | **Aggressive** |
 | Software Rendering | Not configured | **Force pixman + fallbacks** |
-| Mesa Libraries | mesa only | **mesa + lib32 + vulkan-swrast** |
+| Mesa Libraries | mesa only | **mesa + vulkan-swrast + vdpau** |
 | Renderer Fallback | None | **Multi-renderer wrapper** |
 | Heavy Effects | Enabled | **Disabled** |
 | Fallback Compositor | None | **Sway** |
