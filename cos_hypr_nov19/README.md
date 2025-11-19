@@ -102,7 +102,8 @@ This ISO uses `post-install-vbox.sh` instead of regular `post-install.sh`.
 mesa               # Base Mesa 3D Graphics Library
 mesa-demos         # Mesa demo programs (includes glxinfo)
 vulkan-swrast      # Software Vulkan renderer (llvmpipe)
-vulkan-loader      # Vulkan Installable Client Driver
+vulkan-icd-loader  # Vulkan Installable Client Driver (ICD) loader
+vulkan-tools       # Vulkan debugging tools (vulkaninfo, etc.)
 llvm               # LLVM for software rendering
 glu                # OpenGL Utility Library
 libglvnd           # OpenGL vendor-neutral dispatch library

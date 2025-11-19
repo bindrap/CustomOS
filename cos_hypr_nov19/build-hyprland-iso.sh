@@ -264,7 +264,8 @@ sudo pacman -S --needed --noconfirm \
     mesa \
     mesa-demos \
     vulkan-swrast \
-    vulkan-loader \
+    vulkan-icd-loader \
+    vulkan-tools \
     llvm \
     glu \
     libglvnd \
@@ -793,7 +794,7 @@ if [ -f "$ISO_FILE" ]; then
     echo "  ✓ WLR_DRM_DEVICES= (ignore VirtualBox GPU)"
     echo "  ✓ vboxvideo kernel module auto-loaded"
     echo "  ✓ Multi-renderer fallback (vulkan → pixman → gles2)"
-    echo "  ✓ Mesa + vulkan-swrast + vulkan-loader + llvm"
+    echo "  ✓ Mesa + vulkan-swrast + vulkan-icd-loader + vulkan-tools + llvm"
     echo "  ✓ Disabled hardware cursors (WLR_NO_HARDWARE_CURSORS=1)"
     echo "  ✓ Disabled blur and shadows"
     echo "  ✓ Simplified animations"
