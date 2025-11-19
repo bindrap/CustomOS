@@ -159,22 +159,51 @@ echo -e "${BLUE}Starting QEMU...${NC}"
 echo -e "${YELLOW}Tip: Press Ctrl+Alt+G to release mouse/keyboard${NC}"
 echo ""
 
-# Find UEFI firmware
-OVMF_CODE="/usr/share/OVMF/OVMF_CODE.fd"
-OVMF_VARS_TEMPLATE="/usr/share/OVMF/OVMF_VARS.fd"
+# Find UEFI firmware (multiple possible locations)
+OVMF_CODE=""
+OVMF_VARS_TEMPLATE=""
 OVMF_VARS="$DISK_DIR/OVMF_VARS.fd"
 
-# Check for OVMF (UEFI firmware)
-if [ ! -f "$OVMF_CODE" ]; then
-    echo -e "${RED}✗${NC} UEFI firmware not found!"
-    echo "Install with: sudo apt install ovmf"
-    exit 1
+# Check common OVMF locations
+for code_path in \
+    "/usr/share/OVMF/OVMF_CODE.fd" \
+    "/usr/share/ovmf/OVMF.fd" \
+    "/usr/share/ovmf/x64/OVMF_CODE.fd" \
+    "/usr/share/edk2-ovmf/x64/OVMF_CODE.fd" \
+    "/usr/share/qemu/ovmf-x86_64-code.bin"; do
+    if [ -f "$code_path" ]; then
+        OVMF_CODE="$code_path"
+        break
+    fi
+done
+
+# Find matching VARS file
+if [ -n "$OVMF_CODE" ]; then
+    code_dir=$(dirname "$OVMF_CODE")
+    for vars_path in \
+        "$code_dir/OVMF_VARS.fd" \
+        "$code_dir/OVMF_VARS.fd" \
+        "/usr/share/qemu/ovmf-x86_64-vars.bin"; do
+        if [ -f "$vars_path" ]; then
+            OVMF_VARS_TEMPLATE="$vars_path"
+            break
+        fi
+    done
 fi
 
-# Create UEFI variables file if needed (stores boot settings)
-if [ ! -f "$OVMF_VARS" ]; then
-    echo -e "${YELLOW}→${NC} Creating UEFI variables file..."
-    cp "$OVMF_VARS_TEMPLATE" "$OVMF_VARS"
+USE_UEFI=0
+if [ -n "$OVMF_CODE" ] && [ -n "$OVMF_VARS_TEMPLATE" ]; then
+    USE_UEFI=1
+    echo -e "${GREEN}✓${NC} UEFI firmware found"
+    # Create UEFI variables file if needed (stores boot settings)
+    if [ ! -f "$OVMF_VARS" ]; then
+        echo -e "${YELLOW}→${NC} Creating UEFI variables file..."
+        cp "$OVMF_VARS_TEMPLATE" "$OVMF_VARS"
+    fi
+else
+    echo -e "${YELLOW}⚠${NC} UEFI firmware not found - using BIOS mode"
+    echo "  UEFI provides better compatibility with systemd-boot"
+    echo "  For UEFI support, install: sudo apt install ovmf"
 fi
 
 # Build QEMU command
@@ -182,9 +211,18 @@ QEMU_CMD="qemu-system-x86_64"
 QEMU_ARGS=(
     -m 4G
     -smp 4
-    # UEFI firmware (required for EFI boot)
-    -drive "if=pflash,format=raw,readonly=on,file=$OVMF_CODE"
-    -drive "if=pflash,format=raw,file=$OVMF_VARS"
+)
+
+# Add UEFI firmware if available
+if [ $USE_UEFI -eq 1 ]; then
+    QEMU_ARGS+=(
+        -drive "if=pflash,format=raw,readonly=on,file=$OVMF_CODE"
+        -drive "if=pflash,format=raw,file=$OVMF_VARS"
+    )
+fi
+
+# Add virtual disk and other devices
+QEMU_ARGS+=(
     # Virtual disk
     -drive "file=$DISK_FILE,format=qcow2,if=virtio"
     # Graphics
