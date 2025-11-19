@@ -260,7 +260,14 @@ sudo pacman -S --needed --noconfirm \
     fzf \
     bluez \
     bluez-utils \
-    blueman
+    blueman \
+    mesa \
+    lib32-mesa \
+    vulkan-swrast \
+    glu \
+    libglvnd \
+    libva-mesa-driver \
+    mesa-vdpau
 
 echo -e "${GREEN}✓${NC} All packages installed!"
 
@@ -309,7 +316,10 @@ if [ "\$VBOX_DETECTED" = "1" ]; then
 # VirtualBox-specific optimizations
 env = WLR_NO_HARDWARE_CURSORS,1
 env = WLR_RENDERER_ALLOW_SOFTWARE,1
+env = WLR_RENDERER,pixman
 env = LIBVA_DRIVER_NAME,i965
+env = __GLX_VENDOR_LIBRARY_NAME,mesa
+env = GBM_BACKEND,nvidia-drm
 
 # Disable resource-intensive features
 decoration {
@@ -335,6 +345,90 @@ misc {
 EOFVBOX
 
     echo -e "${GREEN}✓${NC} VirtualBox optimizations applied"
+
+    # Create Hyprland wrapper script with multiple renderer fallbacks
+    echo -e "${YELLOW}→${NC} Creating Hyprland wrapper with renderer fallbacks..."
+    mkdir -p ~/.local/bin
+    cat > ~/.local/bin/start-hyprland.sh << "EOFWRAPPER"
+#!/bin/bash
+
+# Hyprland VirtualBox Wrapper - Try multiple rendering backends
+# This script attempts different WLR_RENDERER options until one works
+
+LOG_FILE="/tmp/hyprland-startup.log"
+ERROR_LOG="/tmp/hyprland-error.log"
+
+echo "=== Hyprland Startup Attempt: \$(date) ===" > "\$LOG_FILE"
+
+# Set VirtualBox-specific environment variables
+export WLR_NO_HARDWARE_CURSORS=1
+export WLR_RENDERER_ALLOW_SOFTWARE=1
+export LIBVA_DRIVER_NAME=i965
+export __GLX_VENDOR_LIBRARY_NAME=mesa
+export MOZ_ENABLE_WAYLAND=1
+export QT_QPA_PLATFORM=wayland
+export SDL_VIDEODRIVER=wayland
+export GDK_BACKEND=wayland
+
+# Try different renderers in order of compatibility
+RENDERERS=("pixman" "gles2" "vulkan")
+
+for RENDERER in "\${RENDERERS[@]}"; do
+    echo "Attempting to start Hyprland with WLR_RENDERER=\$RENDERER..." | tee -a "\$LOG_FILE"
+
+    export WLR_RENDERER="\$RENDERER"
+
+    # Try starting Hyprland
+    timeout 10s Hyprland >> "\$LOG_FILE" 2>> "\$ERROR_LOG"
+    EXIT_CODE=\$?
+
+    # If Hyprland is still running after 10s, it probably succeeded
+    if [ \$EXIT_CODE -eq 124 ]; then
+        echo "Hyprland started successfully with \$RENDERER renderer!" | tee -a "\$LOG_FILE"
+        # Restart Hyprland without timeout
+        exec Hyprland 2>> "\$ERROR_LOG"
+    fi
+
+    # Check if it crashed immediately
+    if [ \$EXIT_CODE -ne 0 ] && [ \$EXIT_CODE -ne 124 ]; then
+        echo "Failed with \$RENDERER (exit code: \$EXIT_CODE)" | tee -a "\$LOG_FILE"
+        echo "Error output:" | tee -a "\$LOG_FILE"
+        tail -n 20 "\$ERROR_LOG" | tee -a "\$LOG_FILE"
+        echo "" | tee -a "\$LOG_FILE"
+
+        # Wait a bit before trying next renderer
+        sleep 1
+    fi
+done
+
+# If all renderers failed, show error and fallback to Sway
+echo "" | tee -a "\$LOG_FILE"
+echo "==========================================" | tee -a "\$LOG_FILE"
+echo "ERROR: Hyprland failed with all renderers" | tee -a "\$LOG_FILE"
+echo "==========================================" | tee -a "\$LOG_FILE"
+echo "" | tee -a "\$LOG_FILE"
+echo "Attempted renderers: \${RENDERERS[*]}" | tee -a "\$LOG_FILE"
+echo "" | tee -a "\$LOG_FILE"
+echo "Full error log:" | tee -a "\$LOG_FILE"
+cat "\$ERROR_LOG" | tee -a "\$LOG_FILE"
+echo "" | tee -a "\$LOG_FILE"
+echo "Falling back to Sway in 5 seconds..." | tee -a "\$LOG_FILE"
+echo "Press Ctrl+C to cancel" | tee -a "\$LOG_FILE"
+sleep 5
+
+# Launch Sway as fallback
+if command -v sway &>/dev/null; then
+    echo "Starting Sway..." | tee -a "\$LOG_FILE"
+    exec sway
+else
+    echo "ERROR: Sway not found! No compositor available." | tee -a "\$LOG_FILE"
+    echo "Logs saved to: \$LOG_FILE and \$ERROR_LOG"
+    exit 1
+fi
+EOFWRAPPER
+
+    chmod +x ~/.local/bin/start-hyprland.sh
+    echo -e "${GREEN}✓${NC} Hyprland wrapper created"
 fi
 
 # Copy other configs
@@ -374,10 +468,13 @@ echo -e "${GREEN}✓${NC} Zsh configured as default shell"
 if [ "\$VBOX_DETECTED" = "1" ]; then
     echo -e "${YELLOW}→${NC} Creating VirtualBox environment settings..."
     cat > ~/.config/hypr/env.conf << "EOFENV"
-# VirtualBox Environment Variables
+# VirtualBox Environment Variables - Force Software Rendering
 env = WLR_NO_HARDWARE_CURSORS,1
 env = WLR_RENDERER_ALLOW_SOFTWARE,1
+env = WLR_RENDERER,pixman
 env = LIBVA_DRIVER_NAME,i965
+env = __GLX_VENDOR_LIBRARY_NAME,mesa
+env = GBM_BACKEND,nvidia-drm
 env = MOZ_ENABLE_WAYLAND,1
 env = QT_QPA_PLATFORM,wayland
 env = SDL_VIDEODRIVER,wayland
@@ -389,25 +486,27 @@ fi
 echo ""
 echo -e "${YELLOW}→${NC} Configuring auto-start for Hyprland..."
 cat > ~/.zprofile << "EOFZPROFILE"
-# Auto-start Hyprland on TTY1 with fallback to Sway
+# Auto-start Hyprland on TTY1 with intelligent renderer selection
 if [ -z "\$WAYLAND_DISPLAY" ] && [ "\$XDG_VTNR" -eq 1 ]; then
-    # Try Hyprland first
-    if command -v Hyprland &>/dev/null; then
-        exec Hyprland 2>/tmp/hyprland-error.log || {
-            echo "Hyprland failed to start. Error log:"
-            cat /tmp/hyprland-error.log
-            echo ""
-            echo "Falling back to Sway..."
-            sleep 3
-            exec sway
-        }
-    else
+    # Add user bin to PATH for wrapper script
+    export PATH="\$HOME/.local/bin:\$PATH"
+
+    # Use wrapper script if in VirtualBox, otherwise direct launch
+    if [ -f ~/.local/bin/start-hyprland.sh ]; then
+        # VirtualBox - use wrapper with renderer fallbacks
+        exec ~/.local/bin/start-hyprland.sh
+    elif command -v Hyprland &>/dev/null; then
+        # Real hardware - direct launch
+        exec Hyprland 2>/tmp/hyprland-error.log
+    elif command -v sway &>/dev/null; then
         # Fallback to Sway if Hyprland not found
         exec sway
+    else
+        echo "No Wayland compositor found!"
     fi
 fi
 EOFZPROFILE
-echo -e "${GREEN}✓${NC} Hyprland will auto-start on login (with Sway fallback)"
+echo -e "${GREEN}✓${NC} Hyprland will auto-start on login (with intelligent renderer selection)"
 
 # Apply default theme
 echo ""
@@ -441,13 +540,24 @@ echo -e "${GREEN}✓${NC} Hyprland and VirtualBox optimizations installed!"
 echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════════════${NC}"
 echo -e "${YELLOW}What'\''s Installed:${NC}"
-echo -e "${GREEN}  ✓${NC} Hyprland with VirtualBox optimizations"
-echo -e "${GREEN}  ✓${NC} Software rendering fallback enabled"
-echo -e "${GREEN}  ✓${NC} Sway as fallback compositor"
-echo -e "${GREEN}  ✓${NC} All required dependencies"
+echo -e "${GREEN}  ✓${NC} Hyprland with aggressive VirtualBox fixes"
+echo -e "${GREEN}  ✓${NC} Multi-renderer fallback (pixman → gles2 → vulkan)"
+echo -e "${GREEN}  ✓${NC} Mesa software rendering libraries"
+echo -e "${GREEN}  ✓${NC} Intelligent startup wrapper script"
+echo -e "${GREEN}  ✓${NC} Sway as final fallback compositor"
+echo -e "${GREEN}  ✓${NC} All required dependencies + polkit"
 echo -e "${GREEN}  ✓${NC} VirtualBox guest additions"
 echo -e "${GREEN}  ✓${NC} 10 Pre-configured themes"
 echo -e "${GREEN}  ✓${NC} Complete Waybar with 3 styles"
+echo -e "${CYAN}═══════════════════════════════════════════════════════════${NC}"
+echo ""
+echo -e "${YELLOW}VirtualBox Fixes Applied:${NC}"
+echo -e "${GREEN}  ✓${NC} WLR_RENDERER=pixman (pure software rendering)"
+echo -e "${GREEN}  ✓${NC} WLR_NO_HARDWARE_CURSORS=1"
+echo -e "${GREEN}  ✓${NC} Disabled blur and shadows"
+echo -e "${GREEN}  ✓${NC} Simplified animations"
+echo -e "${GREEN}  ✓${NC} Automatic renderer detection"
+echo ""
 echo -e "${CYAN}═══════════════════════════════════════════════════════════${NC}"
 echo ""
 echo -e "${YELLOW}Quick Start:${NC}"
@@ -463,9 +573,11 @@ echo -e "${GREEN}Ready to start!${NC}"
 echo ""
 echo -e "${YELLOW}Options:${NC}"
 echo -e "  1. Type ${GREEN}reboot${NC} to restart (Hyprland will auto-start)"
-echo -e "  2. Type ${GREEN}Hyprland${NC} to start now"
+echo -e "  2. Type ${GREEN}~/.local/bin/start-hyprland.sh${NC} to start now"
 echo ""
-echo -e "${YELLOW}If Hyprland crashes, it will automatically fallback to Sway${NC}"
+echo -e "${YELLOW}The wrapper will try multiple renderers automatically.${NC}"
+echo -e "${YELLOW}Check logs at: /tmp/hyprland-startup.log${NC}"
+echo -e "${YELLOW}If all fail, it will automatically fallback to Sway.${NC}"
 echo ""
 
 EOFPOSTINSTALL
@@ -627,31 +739,39 @@ if [ -f "$ISO_FILE" ]; then
     echo "  Size: $ISO_SIZE"
     echo ""
     echo "VirtualBox Fixes Included:"
-    echo "  ✓ Software rendering fallback (WLR_NO_HARDWARE_CURSORS)"
+    echo "  ✓ Multi-renderer fallback (pixman → gles2 → vulkan)"
+    echo "  ✓ Mesa software rendering libraries"
+    echo "  ✓ Forced software rendering (WLR_RENDERER=pixman)"
+    echo "  ✓ Disabled hardware cursors (WLR_NO_HARDWARE_CURSORS=1)"
     echo "  ✓ Disabled blur and shadows"
     echo "  ✓ Simplified animations"
-    echo "  ✓ Sway fallback if Hyprland crashes"
-    echo "  ✓ All required dependencies (polkit, xdg-desktop-portal)"
+    echo "  ✓ Intelligent wrapper script tries all renderers"
+    echo "  ✓ Sway fallback if all renderers fail"
+    echo "  ✓ All required dependencies (polkit, xdg-desktop-portal, mesa)"
     echo "  ✓ VirtualBox guest additions"
+    echo "  ✓ Extensive error logging"
     echo ""
     echo "VirtualBox Settings (IMPORTANT!):"
     echo "  1. Type: Arch Linux (64-bit)"
-    echo "  2. RAM: 4GB+"
+    echo "  2. RAM: 4GB+ (8GB recommended)"
     echo "  3. Disk: 50GB+"
     echo "  4. Graphics: VMSVGA"
-    echo "  5. EFI: DISABLED (use BIOS mode)"
-    echo "  6. 3D Acceleration: DISABLED"
+    echo "  5. Video Memory: 128MB"
+    echo "  6. EFI: DISABLED (use BIOS mode)"
+    echo "  7. 3D Acceleration: DISABLED"
     echo ""
     echo "Installation:"
     echo "  1. Boot ISO in VirtualBox"
     echo "  2. Run: install-arch"
     echo "  3. Reboot and login"
-    echo "  4. Hyprland auto-installs (with VBox fixes)"
-    echo "  5. Reboot - Hyprland starts!"
+    echo "  4. Hyprland auto-installs with aggressive VBox fixes"
+    echo "  5. Reboot - wrapper tries multiple renderers automatically"
     echo ""
-    echo "If Hyprland still crashes, check:"
+    echo "Debugging:"
+    echo "  - Startup log: /tmp/hyprland-startup.log"
     echo "  - Error log: /tmp/hyprland-error.log"
-    echo "  - Will auto-fallback to Sway"
+    echo "  - Wrapper tries: pixman, gles2, vulkan in order"
+    echo "  - Auto-fallback to Sway if all fail"
     echo ""
 else
     echo ""

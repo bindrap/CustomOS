@@ -19,13 +19,18 @@ This happens because:
 
 ## The Solution
 
-This ISO includes:
-- ✅ **Software rendering fallback** (WLR_NO_HARDWARE_CURSORS=1)
+This ISO includes **AGGRESSIVE** VirtualBox fixes:
+- ✅ **Multi-renderer fallback system** (pixman → gles2 → vulkan)
+- ✅ **Mesa software rendering libraries** (mesa, lib32-mesa, vulkan-swrast)
+- ✅ **Intelligent wrapper script** tries all renderers automatically
+- ✅ **Forced software rendering** (WLR_RENDERER=pixman as default)
+- ✅ **Disabled hardware cursors** (WLR_NO_HARDWARE_CURSORS=1)
 - ✅ **Disabled heavy effects** (no blur, no shadows)
 - ✅ **Simplified animations**
-- ✅ **All required dependencies** (polkit, xdg-desktop-portal-hyprland)
-- ✅ **Sway fallback** if Hyprland crashes
+- ✅ **All required dependencies** (polkit, xdg-desktop-portal-hyprland, mesa)
+- ✅ **Sway fallback** if all renderers fail
 - ✅ **VirtualBox guest additions** auto-detected and installed
+- ✅ **Extensive error logging** for debugging
 - ✅ **VirtualBox-specific environment variables**
 
 ## Quick Start
@@ -90,14 +95,28 @@ This ISO uses `post-install-vbox.sh` instead of regular `post-install.sh`.
 
 **Key differences:**
 
-#### 1. Environment Variables
+#### 1. Mesa Software Rendering Libraries
+```bash
+mesa               # Base Mesa 3D Graphics Library
+lib32-mesa         # 32-bit Mesa libraries
+vulkan-swrast      # Software Vulkan renderer
+glu                # OpenGL Utility Library
+libglvnd           # OpenGL vendor-neutral dispatch library
+libva-mesa-driver  # Video Acceleration API Mesa driver
+mesa-vdpau         # Video Decode and Presentation API
+```
+
+#### 2. Environment Variables (AGGRESSIVE)
 ```bash
 WLR_NO_HARDWARE_CURSORS=1      # Software cursor
 WLR_RENDERER_ALLOW_SOFTWARE=1  # Allow software rendering
+WLR_RENDERER=pixman            # Force pure software rendering
 LIBVA_DRIVER_NAME=i965         # Intel VA-API driver
+__GLX_VENDOR_LIBRARY_NAME=mesa # Force Mesa for OpenGL
+GBM_BACKEND=nvidia-drm         # Generic Buffer Management
 ```
 
-#### 2. Hyprland Config Modifications
+#### 3. Hyprland Config Modifications
 ```bash
 decoration {
     blur {
@@ -116,35 +135,62 @@ misc {
 }
 ```
 
-#### 3. Additional Packages
+#### 4. Additional Packages
 - `xdg-desktop-portal-hyprland` - Required for Wayland apps
 - `xdg-desktop-portal-gtk` - GTK portal
 - `polkit` - Authentication agent (prevents crashes)
 - `polkit-gnome` - GUI for polkit
 - `qt5-wayland` + `qt6-wayland` - Qt Wayland support
 - `sway` - Fallback compositor
+- `mesa` + software rendering libraries - For software GPU
 
-#### 4. Automatic Fallback
+#### 5. Intelligent Multi-Renderer Wrapper Script
+
+**NEW!** The wrapper script (`~/.local/bin/start-hyprland.sh`) tries multiple renderers automatically:
+
 ```bash
-exec Hyprland 2>/tmp/hyprland-error.log || {
-    echo "Hyprland failed, falling back to Sway..."
-    exec sway
-}
+# Tries in order:
+1. WLR_RENDERER=pixman   # Pure software (CPU only)
+2. WLR_RENDERER=gles2    # OpenGL ES 2.0 (if available)
+3. WLR_RENDERER=vulkan   # Vulkan (if available)
+
+# Each renderer gets 10 seconds to start
+# If it crashes immediately, tries the next one
+# If it runs for 10s, it's considered successful
 ```
 
-If Hyprland crashes, Sway starts automatically!
+#### 6. Automatic Fallback Chain
+```bash
+Try pixman renderer
+  ↓ (if fails)
+Try gles2 renderer
+  ↓ (if fails)
+Try vulkan renderer
+  ↓ (if fails)
+Show error logs
+  ↓
+Wait 5 seconds
+  ↓
+Launch Sway
+```
+
+The wrapper logs everything to `/tmp/hyprland-startup.log` for debugging!
 
 ## Differences from customIso_nov19
 
 | Feature | customIso_nov19 | cos_hypr_nov19 |
 |---------|-----------------|----------------|
 | Post-Install Script | post-install.sh | post-install-vbox.sh |
-| VirtualBox Optimizations | Basic | Advanced |
-| Software Rendering | Not configured | Fully configured |
-| Heavy Effects | Enabled | Disabled |
-| Fallback Compositor | None | Sway |
-| Environment Variables | Standard | VBox-specific |
-| Core Dump Fix | No | Yes |
+| VirtualBox Optimizations | Basic | **Aggressive** |
+| Software Rendering | Not configured | **Force pixman + fallbacks** |
+| Mesa Libraries | mesa only | **mesa + lib32 + vulkan-swrast** |
+| Renderer Fallback | None | **Multi-renderer wrapper** |
+| Heavy Effects | Enabled | **Disabled** |
+| Fallback Compositor | None | **Sway** |
+| Environment Variables | Standard | **10+ VBox-specific** |
+| Error Logging | Basic | **Extensive (2 log files)** |
+| Auto-retry Logic | No | **Yes (3 renderers)** |
+| Core Dump Fix | No | **Yes (multiple approaches)** |
 
 ## What Gets Installed
 
@@ -183,15 +229,65 @@ If Hyprland crashes, Sway starts automatically!
 
 ### Hyprland Still Crashes
 
-Check the error log:
+**FIRST: Check the logs!** The wrapper script creates detailed logs:
+
 ```bash
+# Startup log shows which renderers were tried
+cat /tmp/hyprland-startup.log
+
+# Error log shows actual crash details
 cat /tmp/hyprland-error.log
 ```
 
-Common issues:
-1. **"can't open display"** - Missing xdg-desktop-portal
-2. **"failed to create backend"** - Try sway instead
-3. **Segmentation fault** - GPU issue, should fallback to Sway
+**Understanding the logs:**
+```bash
+# Good sign - wrapper is trying renderers:
+"Attempting to start Hyprland with WLR_RENDERER=pixman..."
+"Attempting to start Hyprland with WLR_RENDERER=gles2..."
+
+# Bad sign - all renderers failed:
+"ERROR: Hyprland failed with all renderers"
+"Attempted renderers: pixman gles2 vulkan"
+"Falling back to Sway..."
+```
+
+### Common Issues and Fixes
+
+**1. "can't open display"**
+```bash
+# Missing xdg-desktop-portal
+sudo pacman -S xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
+```
+
+**2. "failed to create backend"**
+```bash
+# Try forcing pixman renderer manually
+WLR_RENDERER=pixman WLR_NO_HARDWARE_CURSORS=1 Hyprland
+```
+
+**3. "Segmentation fault" with no details**
+```bash
+# Missing polkit or Mesa libraries
+sudo pacman -S polkit polkit-gnome mesa lib32-mesa vulkan-swrast
+```
+
+**4. Wrapper doesn't try all renderers**
+```bash
+# Make sure wrapper is executable
+chmod +x ~/.local/bin/start-hyprland.sh
+
+# Run it manually to see output
+~/.local/bin/start-hyprland.sh
+```
+
+**5. All renderers fail but no Sway fallback**
+```bash
+# Sway might not be installed
+sudo pacman -S sway
+
+# Or start Sway manually
+sway
+```
 
 ### Fallback to Sway
 
