@@ -161,6 +161,11 @@ cat >> packages.x86_64 << 'EOF'
 git
 neovim
 htop
+pciutils
+usbutils
+lshw
+dmidecode
+virtualbox-guest-utils-nox
 EOF
 
 # Customize ISO label

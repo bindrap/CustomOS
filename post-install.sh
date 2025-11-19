@@ -46,13 +46,49 @@ read -p "Press ENTER to continue..."
 # Check internet connectivity
 echo ""
 echo -e "${YELLOW}→${NC} Checking internet connectivity..."
-if ping -c 2 archlinux.org &>/dev/null; then
-    echo -e "${GREEN}✓${NC} Internet connection detected"
-else
-    echo -e "${RED}✗${NC} No internet connection!"
-    echo "Please connect to the internet and run this script again:"
-    echo "  cd ~/custom-setup && ./post-install.sh"
-    exit 1
+echo "Testing connection, please wait..."
+
+INTERNET_OK=0
+
+# Try multiple methods (some networks block ICMP, some have DNS issues)
+if ping -c 1 -W 5 8.8.8.8 &>/dev/null; then
+    INTERNET_OK=1
+    echo -e "${GREEN}✓${NC} Internet connection detected (via 8.8.8.8)"
+elif ping -c 1 -W 5 1.1.1.1 &>/dev/null; then
+    INTERNET_OK=1
+    echo -e "${GREEN}✓${NC} Internet connection detected (via 1.1.1.1)"
+elif ping -c 1 -W 5 archlinux.org &>/dev/null; then
+    INTERNET_OK=1
+    echo -e "${GREEN}✓${NC} Internet connection detected (via archlinux.org)"
+elif curl -s --connect-timeout 5 http://archlinux.org &>/dev/null; then
+    INTERNET_OK=1
+    echo -e "${GREEN}✓${NC} Internet connection detected (via curl)"
+fi
+
+if [ $INTERNET_OK -eq 0 ]; then
+    echo -e "${RED}✗${NC} No internet connection detected!"
+    echo ""
+    echo "Tried:"
+    echo "  • ping 8.8.8.8 (Google DNS)"
+    echo "  • ping 1.1.1.1 (Cloudflare DNS)"
+    echo "  • ping archlinux.org"
+    echo "  • curl http://archlinux.org"
+    echo ""
+    echo "Please check your network connection:"
+    echo "  1. Check if NetworkManager is running: systemctl status NetworkManager"
+    echo "  2. Connect to network: nmtui"
+    echo "  3. Or use: sudo dhcpcd"
+    echo "  4. Test manually: ping 8.8.8.8"
+    echo ""
+    read -p "Do you have internet connection? (yes/no): " HAS_INTERNET
+    if [ "$HAS_INTERNET" != "yes" ]; then
+        echo ""
+        echo "Please connect to the internet and run this script again:"
+        echo "  cd ~/custom-setup && ./post-install.sh"
+        exit 1
+    else
+        echo -e "${GREEN}✓${NC} Manual override - continuing with installation"
+    fi
 fi
 
 # Update system
@@ -129,6 +165,15 @@ echo ""
 echo -e "${YELLOW}→${NC} Enabling system services..."
 sudo systemctl enable NetworkManager
 sudo systemctl enable bluetooth
+
+# Detect and configure VirtualBox if running in VM
+if lspci | grep -i "virtualbox" &>/dev/null || dmesg | grep -i "vbox" &>/dev/null; then
+    echo -e "${YELLOW}→${NC} VirtualBox detected - Installing guest additions..."
+    sudo pacman -S --needed --noconfirm virtualbox-guest-utils || true
+    sudo systemctl enable vboxservice || true
+    echo -e "${GREEN}✓${NC} VirtualBox guest additions installed"
+fi
+
 echo -e "${GREEN}✓${NC} Services enabled"
 
 # Create config directories

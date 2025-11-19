@@ -41,14 +41,32 @@ fi
 
 # Detect internet connectivity
 echo -e "${YELLOW}→${NC} Detecting internet connectivity..."
-sleep 1
+echo "Testing connection, please wait..."
+sleep 2
 
 INSTALL_MODE="offline"
-if ping -c 2 archlinux.org &>/dev/null || ping -c 2 8.8.8.8 &>/dev/null; then
+
+# Try ping first (most reliable)
+if ping -c 1 -W 5 8.8.8.8 &>/dev/null; then
+    INSTALL_MODE="online"
+    echo -e "${GREEN}✓${NC} Internet detected - Using online installation"
+elif ping -c 1 -W 5 1.1.1.1 &>/dev/null; then
+    INSTALL_MODE="online"
+    echo -e "${GREEN}✓${NC} Internet detected - Using online installation"
+elif ping -c 1 -W 5 archlinux.org &>/dev/null; then
     INSTALL_MODE="online"
     echo -e "${GREEN}✓${NC} Internet detected - Using online installation"
 else
-    echo -e "${YELLOW}!${NC} No internet - Using offline installation"
+    echo -e "${YELLOW}!${NC} No internet detected - Would use offline installation"
+    echo ""
+    echo "If you have internet, the detection may have failed."
+    read -p "Do you have internet connection? (yes/no): " HAS_INTERNET
+    if [ "$HAS_INTERNET" = "yes" ]; then
+        INSTALL_MODE="online"
+        echo -e "${GREEN}✓${NC} Manual override - Using online installation"
+    else
+        echo -e "${YELLOW}!${NC} Using offline installation (requires offline packages)"
+    fi
 fi
 
 echo ""
@@ -124,45 +142,80 @@ else
     DISK_P="${DISK}"
 fi
 
-# Partition disk
+# Partition disk (hybrid scheme supporting both BIOS and UEFI)
 echo -e "${YELLOW}→${NC} Partitioning disk..."
 sgdisk -Z $DISK
-sgdisk -n 1:0:+512M -t 1:ef00 $DISK
-sgdisk -n 2:0:+4G -t 2:8200 $DISK
-sgdisk -n 3:0:0 -t 3:8300 $DISK
 
-# Format partitions
+# Create partitions for both BIOS and UEFI boot support
+sgdisk -n 1:0:+1M -t 1:ef02 $DISK      # BIOS boot partition (for GRUB)
+sgdisk -n 2:0:+512M -t 2:ef00 $DISK    # EFI System Partition (for systemd-boot)
+sgdisk -n 3:0:+4G -t 3:8200 $DISK      # Swap
+sgdisk -n 4:0:0 -t 4:8300 $DISK        # Root filesystem
+
+echo "Partition layout:"
+echo "  1: BIOS boot (1MB) - for GRUB in BIOS mode"
+echo "  2: EFI System (512MB) - for systemd-boot in UEFI mode"
+echo "  3: Swap (4GB)"
+echo "  4: Root (remaining space)"
+
+# Format partitions (skip partition 1, it's used raw by GRUB)
 echo -e "${YELLOW}→${NC} Formatting partitions..."
-mkfs.fat -F32 ${DISK_P}1
-mkswap ${DISK_P}2
-swapon ${DISK_P}2
-mkfs.ext4 -F ${DISK_P}3
+mkfs.fat -F32 ${DISK_P}2
+mkswap ${DISK_P}3
+swapon ${DISK_P}3
+mkfs.ext4 -F ${DISK_P}4
 
 # Mount filesystems
 echo -e "${YELLOW}→${NC} Mounting filesystems..."
-mount ${DISK_P}3 /mnt
+mount ${DISK_P}4 /mnt
 mkdir -p /mnt/boot
-mount ${DISK_P}1 /mnt/boot
+mount ${DISK_P}2 /mnt/boot
 
 # Install base system
 echo -e "${YELLOW}→${NC} Installing base system..."
 if [ "$INSTALL_MODE" = "online" ]; then
     # Online: Use pacstrap to download and install
-    pacstrap /mnt base base-devel linux linux-firmware \
-        vim networkmanager sudo git
+    echo "  Downloading and installing packages from internet..."
+    if ! pacstrap /mnt base base-devel linux linux-firmware \
+        vim networkmanager sudo git; then
+        echo -e "${RED}✗${NC} Failed to install packages!"
+        echo "This could mean:"
+        echo "  - No internet connection (try manual ping test)"
+        echo "  - Package mirror is down"
+        echo "  - Network issues in VM"
+        echo ""
+        echo "Try:"
+        echo "  1. Check network: ping -c 3 archlinux.org"
+        echo "  2. Restart NetworkManager: systemctl restart NetworkManager"
+        echo "  3. Re-run install-arch"
+        exit 1
+    fi
 else
     # Offline: Use local packages
+    echo "  Using offline package cache..."
     if [ -d "$SCRIPT_DIR/packages" ]; then
         # Set up local repo
         mkdir -p /mnt/var/cache/pacman/pkg
         cp "$SCRIPT_DIR/packages"/*.pkg.tar.zst /mnt/var/cache/pacman/pkg/
-        
+
         # Install from cache
         pacman -r /mnt -S --noconfirm --cachedir /mnt/var/cache/pacman/pkg \
             base base-devel linux linux-firmware \
             vim networkmanager sudo git
     else
-        echo -e "${RED}✗${NC} Offline packages not found!"
+        echo -e "${RED}✗${NC} Offline installation requires offline packages!"
+        echo ""
+        echo "This ISO does not include offline packages."
+        echo ""
+        echo "Options:"
+        echo "  1. Connect to internet and re-run install-arch"
+        echo "  2. Build an offline ISO with packages included"
+        echo ""
+        echo "To build offline ISO:"
+        echo "  bash create-offline-cache.sh"
+        echo "  bash package-creator.sh"
+        echo "  cd customIso_nov19 && bash build-custom-iso.sh"
+        echo ""
         exit 1
     fi
 fi
@@ -201,27 +254,105 @@ echo "$USERNAME:$PASSWORD" | chpasswd
 # Enable sudo for wheel group
 sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
-# Install bootloader
-bootctl install
+# Detect boot mode (UEFI or BIOS)
+if [ -d /sys/firmware/efi/efivars ]; then
+    BOOT_MODE="UEFI"
+    echo "Detected UEFI boot mode"
+else
+    BOOT_MODE="BIOS"
+    echo "Detected BIOS boot mode"
+fi
 
-# Create boot entry
-ROOT_UUID=\$(blkid -s UUID -o value ${DISK_P}3)
-cat > /boot/loader/entries/arch.conf << EOF
-title   Arch Linux
+# Get root partition UUID (now partition 4)
+ROOT_UUID=\$(blkid -s UUID -o value ${DISK_P}4)
+echo "Root UUID: \$ROOT_UUID"
+
+if [ -z "\$ROOT_UUID" ]; then
+    echo "ERROR: Could not determine root partition UUID!"
+    echo "Partition ${DISK_P}4 may not exist"
+    exit 1
+fi
+
+# Install bootloader based on boot mode
+if [ "\$BOOT_MODE" = "UEFI" ]; then
+    echo "Installing systemd-boot bootloader (UEFI)..."
+    bootctl install
+    if [ \$? -ne 0 ]; then
+        echo "ERROR: Bootloader installation failed!"
+        echo "Check if /boot is mounted correctly"
+        mount | grep /boot
+        exit 1
+    fi
+
+    # Create systemd-boot entries
+    cat > /boot/loader/entries/arch.conf << EOF
+title   CustomOS (Arch Linux)
 linux   /vmlinuz-linux
 initrd  /initramfs-linux.img
+options root=UUID=\$ROOT_UUID rw quiet splash loglevel=3
+EOF
+
+    cat > /boot/loader/entries/arch-fallback.conf << EOF
+title   CustomOS (Arch Linux - Fallback)
+linux   /vmlinuz-linux
+initrd  /initramfs-linux-fallback.img
 options root=UUID=\$ROOT_UUID rw
 EOF
 
-cat > /boot/loader/loader.conf << EOF
+    cat > /boot/loader/loader.conf << EOF
 default arch.conf
-timeout 3
-console-mode max
+timeout 5
+console-mode keep
 editor no
 EOF
 
+    echo "systemd-boot installed successfully"
+
+else
+    echo "Installing GRUB bootloader (BIOS)..."
+    pacman -S --needed --noconfirm grub
+
+    # Install GRUB to MBR
+    grub-install --target=i386-pc --recheck $DISK
+    if [ \$? -ne 0 ]; then
+        echo "ERROR: GRUB installation failed!"
+        exit 1
+    fi
+
+    # Generate GRUB config
+    grub-mkconfig -o /boot/grub/grub.cfg
+    if [ \$? -ne 0 ]; then
+        echo "ERROR: GRUB config generation failed!"
+        exit 1
+    fi
+
+    echo "GRUB installed successfully"
+fi
+
+# Verify kernel is installed
+if [ ! -f /boot/vmlinuz-linux ]; then
+    echo "ERROR: Kernel not found in /boot!"
+    exit 1
+fi
+
+echo "Bootloader installation verified"
+ls -la /boot/
+
 # Enable NetworkManager
 systemctl enable NetworkManager
+
+# Detect if running in VirtualBox and configure accordingly
+if lspci | grep -i "virtualbox" &>/dev/null || dmesg | grep -i "vbox" &>/dev/null; then
+    echo "VirtualBox detected - Will configure guest additions after reboot"
+    # Mark for post-install VirtualBox setup
+    touch /var/lib/vbox-detected
+fi
+
+# Install VirtualBox Guest Additions if in VirtualBox (best effort)
+if [ -f /var/lib/vbox-detected ]; then
+    pacman -S --needed --noconfirm virtualbox-guest-utils || true
+    systemctl enable vboxservice || true
+fi
 
 CHROOT_EOF
 
