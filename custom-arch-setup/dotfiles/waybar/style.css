@@ -30,8 +30,9 @@
 @define-color crust #11111b;
 
 * {
-    font-family: "JetBrainsMono Nerd Font", "Font Awesome 6 Free";
+    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", "Font Awesome 6 Free", "Noto Sans", sans-serif;
     font-size: 13px;
+    font-weight: 500;
     min-height: 0;
 }
 
