@@ -37,10 +37,11 @@
 }
 
 window#waybar {
-    background: alpha(@base, 0.95);
+    background: alpha(@base, 0.90);
     color: @text;
     border: none;
-    border-bottom: 1px solid @surface0;
+    border-bottom: 2px solid alpha(@surface0, 0.8);
+    transition: background-color 0.2s ease;
 }
 
 /* Workspaces */
@@ -204,12 +205,13 @@ window#waybar {
 
 /* Tooltips */
 tooltip {
-    background: @base;
-    border: 1px solid @surface0;
-    border-radius: 0;
-    padding: 8px;
+    background: alpha(@base, 0.95);
+    border: 2px solid @surface0;
+    border-radius: 8px;
+    padding: 10px 12px;
 }
 
 tooltip label {
     color: @text;
+    font-size: 12px;
 }
