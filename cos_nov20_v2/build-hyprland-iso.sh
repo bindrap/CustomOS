@@ -202,9 +202,15 @@ if ping -c 2 archlinux.org &>/dev/null; then
     echo -e "${GREEN}✓${NC} Internet connection detected"
 else
     echo -e "${RED}✗${NC} No internet connection!"
-    echo "Please connect to the internet and run this script again:"
+    echo -e "${YELLOW}Warning:${NC} Internet is required for package installation."
+    echo "You can connect now or run this script later:"
     echo "  cd ~/custom-setup && ./post-install-vbox.sh"
-    exit 1
+    echo ""
+    read -p "Continue anyway? (yes/no): " CONTINUE_OFFLINE
+    if [ "$CONTINUE_OFFLINE" != "yes" ]; then
+        echo "Installation cancelled. Connect to internet and try again."
+        exit 0
+    fi
 fi
 
 # Update system
@@ -373,31 +379,6 @@ env = WLR_NO_HARDWARE_CURSORS,1
 env = WLR_RENDERER_ALLOW_SOFTWARE,1
 env = WLR_DRM_DEVICES,
 env = XDG_SESSION_TYPE,wayland
-
-# Use ALT as mod key (easier than Super/Windows key)
-\$mod = ALT
-
-# Disable resource-intensive features
-decoration {
-    blur {
-        enabled = false
-    }
-    drop_shadow = false
-}
-
-animations {
-    enabled = true
-    bezier = simple, 0.16, 1, 0.3, 1
-    animation = windows, 1, 3, simple
-    animation = fade, 1, 3, simple
-    animation = workspaces, 1, 3, simple
-}
-
-misc {
-    disable_hyprland_logo = true
-    disable_splash_rendering = true
-    vfr = true
-}
 EOFVBOX
 
     echo -e "${GREEN}✓${NC} VirtualBox optimizations applied"
@@ -669,11 +650,21 @@ echo -e "  1. Type ${GREEN}reboot${NC} to restart (Hyprland will auto-start)"
 echo -e "  2. Type ${GREEN}hyprland-vbox${NC} to test Hyprland directly"
 echo -e "  3. Type ${GREEN}~/.local/bin/start-hyprland.sh${NC} for multi-renderer wrapper"
 echo ""
+echo -e "${YELLOW}Keybindings (Mod = ALT):${NC}"
+echo -e "  • ALT + T: Terminal (kitty)"
+echo -e "  • ALT + A: App launcher"
+echo -e "  • ALT + Q: Close window"
+echo -e "  • ALT + E: File manager"
+echo ""
 echo -e "${YELLOW}Using PROVEN WORKING VirtualBox config:${NC}"
 echo -e "  • WLR_RENDERER=pixman (tested and working)"
 echo -e "  • Mod key: ALT (not Super/Windows key)"
 echo -e "  • vboxvideo kernel module for DRM support"
 echo -e "  • Check logs: /tmp/hyprland-vbox.log or /tmp/hyprland-startup.log"
+echo ""
+echo -e "${YELLOW}Troubleshooting:${NC}"
+echo -e "  • If ALT+T doesn't work, try: kitty (in terminal)"
+echo -e "  • Check config: cat ~/.config/hypr/hyprland.conf"
 echo -e "${YELLOW}If Hyprland fails, wrapper auto-falls back to Sway.${NC}"
 echo ""
 
