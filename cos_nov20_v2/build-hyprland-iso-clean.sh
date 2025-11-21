@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Hyprland ISO Builder - Optimized for Real Hardware/QEMU
+# CustomOS v2 ISO Builder - Optimized for Real Hardware/QEMU
 # Clean version without VirtualBox-specific workarounds
 
 set -euo pipefail
@@ -10,28 +10,37 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
 NC='\033[0m'
 
-echo -e "${BLUE}"
+echo -e "${PURPLE}"
 cat << "EOF"
 ╔════════════════════════════════════════════════╗
-║  Hyprland ISO Builder                          ║
+║  CustomOS v2 ISO Builder (Clean)               ║
 ║  Optimized for Real Hardware & QEMU            ║
 ╚════════════════════════════════════════════════╝
 EOF
 echo -e "${NC}"
 
-ISO_NAME="hyprland-custom"
+ISO_NAME="customos-v2"
 ISO_VERSION=$(date +%Y%m%d-%H%M)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 OUTPUT_DIR="$SCRIPT_DIR/iso-output"
-CACHE_DIR="$HOME/.cache/archiso-hyprland"
+CACHE_DIR="$HOME/.cache/archiso-customos"
 IMAGE_NAME="archiso-builder"
 
 echo ""
-echo -e "${YELLOW}Building Hyprland ISO for real hardware${NC}"
+echo -e "${YELLOW}CustomOS v2 - Complete Hyprland Environment (Hardware Optimized)${NC}"
 echo "Output: $OUTPUT_DIR/${ISO_NAME}-${ISO_VERSION}.iso"
+echo ""
+echo "Includes:"
+echo "  ✓ Enhanced Hyprland configuration"
+echo "  ✓ Complete font stack (JetBrains Mono, Nerd Fonts, Noto)"
+echo "  ✓ Custom wallpapers for desktop"
+echo "  ✓ Polished Waybar with icon support"
+echo "  ✓ Hardware acceleration enabled"
+echo "  ✓ All required dependencies"
 echo ""
 
 # Check if custom-arch-setup exists
@@ -84,7 +93,7 @@ echo ""
 docker run --rm --privileged \
     -v "$ROOT_DIR:/workspace" \
     -v "$CACHE_DIR:/var/cache/pacman/pkg" \
-    -w /workspace/cos_hypr_nov20 \
+    -w /workspace/cos_nov20_v2 \
     "$DOCKER_IMAGE" \
     bash -c '
 set -euo pipefail
@@ -101,9 +110,9 @@ fi
 
 ISO_NAME="'"$ISO_NAME"'"
 ISO_VERSION="'"$ISO_VERSION"'"
-WORK_DIR="/tmp/archiso-hyprland"
+WORK_DIR="/tmp/archiso-customos-v2"
 ISO_DIR="$WORK_DIR/iso-build"
-OUTPUT_DIR="/workspace/cos_hypr_nov20/iso-output"
+OUTPUT_DIR="/workspace/cos_nov20_v2/iso-output"
 
 echo "→ Cleaning old work..."
 rm -rf "$WORK_DIR"
@@ -125,6 +134,18 @@ if [ -d "/workspace/custom-arch-setup" ]; then
 else
     echo "  ✗ ERROR: custom-arch-setup not found!"
     exit 1
+fi
+
+# Copy wallpapers from cos_nov20_v2/Wallpapers
+echo "→ Copying custom wallpapers..."
+mkdir -p airootfs/root/custom-setup/wallpapers
+if [ -d "/workspace/cos_nov20_v2/Wallpapers" ]; then
+    # Copy all image files from Wallpapers directory
+    find /workspace/cos_nov20_v2/Wallpapers -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) -exec cp {} airootfs/root/custom-setup/wallpapers/ \; 2>/dev/null || true
+    WALLPAPER_COUNT=$(find airootfs/root/custom-setup/wallpapers -type f | wc -l)
+    echo "  ✓ Copied $WALLPAPER_COUNT wallpaper(s)"
+else
+    echo "  ⚠ No Wallpapers directory found (optional)"
 fi
 
 # Create post-install script for Hyprland
@@ -169,7 +190,15 @@ if ping -c 2 archlinux.org &>/dev/null; then
     echo -e "${GREEN}✓${NC} Internet connection detected"
 else
     echo -e "${RED}✗${NC} No internet connection!"
-    exit 1
+    echo -e "${YELLOW}Warning:${NC} Internet is required for package installation."
+    echo "You can connect now or run this script later:"
+    echo "  cd ~/custom-setup && ./post-install.sh"
+    echo ""
+    read -p "Continue anyway? (yes/no): " CONTINUE_OFFLINE
+    if [ "$CONTINUE_OFFLINE" != "yes" ]; then
+        echo "Installation cancelled. Connect to internet and try again."
+        exit 0
+    fi
 fi
 
 # Update system
@@ -227,9 +256,19 @@ sudo pacman -S --needed --noconfirm \
     ttf-dejavu \
     ttf-liberation \
     noto-fonts \
+    noto-fonts-cjk \
+    noto-fonts-emoji \
+    noto-fonts-extra \
     ttf-font-awesome \
     ttf-jetbrains-mono \
-    noto-fonts-emoji \
+    ttf-jetbrains-mono-nerd \
+    ttf-nerd-fonts-symbols \
+    ttf-nerd-fonts-symbols-mono \
+    ttf-ubuntu-font-family \
+    ttf-roboto \
+    ttf-roboto-mono \
+    gnu-free-fonts \
+    cantarell-fonts \
     python-pywal \
     python-pillow \
     zsh \
@@ -244,6 +283,12 @@ sudo pacman -S --needed --noconfirm \
     blueman
 
 echo -e "${GREEN}✓${NC} All packages installed!"
+
+# Rebuild font cache
+echo ""
+echo -e "${YELLOW}→${NC} Building font cache..."
+fc-cache -fv > /dev/null 2>&1
+echo -e "${GREEN}✓${NC} Font cache rebuilt"
 
 # Enable services
 echo ""
@@ -286,6 +331,13 @@ fi
 
 if [ -f "$SCRIPT_DIR/dotfiles/mako/config" ]; then
     cp "$SCRIPT_DIR/dotfiles/mako/config" ~/.config/mako/
+fi
+
+# Copy fontconfig
+if [ -f "$SCRIPT_DIR/dotfiles/fontconfig/fonts.conf" ]; then
+    mkdir -p ~/.config/fontconfig
+    cp "$SCRIPT_DIR/dotfiles/fontconfig/fonts.conf" ~/.config/fontconfig/
+    echo -e "${GREEN}✓${NC} Font configuration installed"
 fi
 
 # Copy wallpapers
@@ -392,11 +444,19 @@ chmod +x airootfs/usr/local/bin/install-arch
 # Add packages to live environment
 echo "→ Adding packages to live environment..."
 cat >> packages.x86_64 << "EOFPKG"
-# Custom additions
+# Custom additions for CustomOS v2
 vim
 git
 neovim
 htop
+pciutils
+usbutils
+lshw
+dmidecode
+fontconfig
+ttf-dejavu
+ttf-liberation
+noto-fonts
 EOFPKG
 
 # Set permissions
@@ -412,17 +472,33 @@ file_permissions=(
 )
 EOFPERMS
 
-# Customize ISO label (max 32 chars)
-# Use short label to avoid "volid too long" error
-SHORT_DATE=$(date +%y%m%d)
-ISO_LABEL="HYPR_${SHORT_DATE}"
-sed -i "s/ARCH_[0-9]*/${ISO_LABEL}/" profiledef.sh
+# Customize ISO name, label, and version
+ISO_LABEL="${ISO_NAME^^}"
+ISO_VER="${ISO_VERSION//-/}"
+
+# Update iso_name (controls output filename)
+sed -i "s/iso_name=\"archlinux\"/iso_name=\"${ISO_NAME}\"/" profiledef.sh
+
+# Update iso_label (controls volume label)
+sed -i "s/ARCH_[0-9]*/CUSTOMOS_${ISO_VER}/" profiledef.sh
+sed -i "s/iso_label=\"ARCH_[0-9]*\"/iso_label=\"CUSTOMOS_${ISO_VER}\"/" profiledef.sh
+
+# Update iso_version (controls version in filename)
+ISO_DATE=$(date +%Y.%m.%d)
+sed -i "s/iso_version=\"[0-9.]*\"/iso_version=\"${ISO_DATE}\"/" profiledef.sh
+
+echo "→ ISO customization applied:"
+echo "  Name: ${ISO_NAME}"
+echo "  Label: CUSTOMOS_${ISO_VER}"
+echo "  Version: ${ISO_DATE}"
 
 # Build ISO
 echo ""
 echo "╔════════════════════════════════════════════════╗"
-echo "║  Building Hyprland ISO (10-15 minutes)         ║"
+echo "║  Building CustomOS v2 ISO (10-15 minutes)      ║"
 echo "╚════════════════════════════════════════════════╝"
+echo ""
+echo "Output will be: ${ISO_NAME}-${ISO_DATE}-x86_64.iso"
 echo ""
 
 mkarchiso -v -w "$WORK_DIR/work" -o "$OUTPUT_DIR" "$ISO_DIR"
