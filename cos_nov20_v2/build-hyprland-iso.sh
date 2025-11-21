@@ -27,7 +27,7 @@ ISO_NAME="customos-v2"
 ISO_VERSION=$(date +%Y%m%d-%H%M)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-OUTPUT_DIR="$SCRIPT_DIR/iso-output-v2"
+OUTPUT_DIR="$SCRIPT_DIR/iso-output"
 CACHE_DIR="$HOME/.cache/archiso-customos"
 IMAGE_NAME="archiso-builder"
 
@@ -114,7 +114,7 @@ ISO_NAME="'"$ISO_NAME"'"
 ISO_VERSION="'"$ISO_VERSION"'"
 WORK_DIR="/tmp/archiso-customos-v2"
 ISO_DIR="$WORK_DIR/iso-build"
-OUTPUT_DIR="/workspace/cos_nov20_v2/iso-output-v2"
+OUTPUT_DIR="/workspace/cos_nov20_v2/iso-output"
 
 echo "→ Cleaning old work..."
 rm -rf "$WORK_DIR"
