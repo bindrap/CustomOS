@@ -177,7 +177,7 @@ if [ "$INSTALL_MODE" = "online" ]; then
     # Online: Use pacstrap to download and install
     echo "  Downloading and installing packages from internet..."
     if ! pacstrap /mnt base base-devel linux linux-firmware \
-        vim networkmanager sudo git openssh; then
+        vim networkmanager sudo git openssh rsync; then
         echo -e "${RED}✗${NC} Failed to install packages!"
         echo "This could mean:"
         echo "  - No internet connection (try manual ping test)"
@@ -201,7 +201,7 @@ else
         # Install from cache
         pacman -r /mnt -S --noconfirm --cachedir /mnt/var/cache/pacman/pkg \
             base base-devel linux linux-firmware \
-            vim networkmanager sudo git openssh
+            vim networkmanager sudo git openssh rsync
     else
         echo -e "${RED}✗${NC} Offline installation requires offline packages!"
         echo ""
