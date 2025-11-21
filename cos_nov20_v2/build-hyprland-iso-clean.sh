@@ -309,6 +309,17 @@ if [ -d "$SCRIPT_DIR/dotfiles/hypr" ]; then
     cp -r "$SCRIPT_DIR/dotfiles/hypr"/* ~/.config/hypr/
     chmod +x ~/.config/hypr/scripts/*.sh 2>/dev/null || true
     echo -e "${GREEN}✓${NC} Hyprland config installed"
+
+    # Verify keybinding configuration
+    if grep -q "bind = \$mod, T, exec, \$terminal" ~/.config/hypr/hyprland.conf; then
+        echo -e "${GREEN}✓${NC} Terminal keybinding (ALT+T) configured"
+    fi
+    if grep -q "bind = SUPER, Return, exec, \$terminal" ~/.config/hypr/hyprland.conf; then
+        echo -e "${GREEN}✓${NC} Alternative terminal keybinding (SUPER+Enter) configured"
+    fi
+    if grep -q "\$terminal = kitty" ~/.config/hypr/hyprland.conf; then
+        echo -e "${GREEN}✓${NC} Terminal set to kitty"
+    fi
 else
     echo -e "${YELLOW}!${NC} Hyprland config not found, creating basic config..."
     mkdir -p ~/.config/hypr
@@ -398,9 +409,15 @@ echo ""
 echo -e "${YELLOW}Troubleshooting:${NC}"
 echo -e "  • If ALT keybindings don't work, try ${BLUE}SUPER + Enter${NC} for terminal"
 echo -e "  • Or manually run: ${GREEN}kitty${NC}"
-echo -e "  • Check config: ${GREEN}cat ~/.config/hypr/hyprland.conf${NC}"
+echo -e "  • Check config: ${GREEN}cat ~/.config/hypr/hyprland.conf | grep -A 3 'Essential bindings'${NC}"
+echo -e "  • Verify mod key: ${GREEN}cat ~/.config/hypr/hyprland.conf | grep '\$mod ='${NC}"
 echo -e "  • View Hyprland logs: ${GREEN}cat /tmp/hyprland.log${NC}"
 echo -e "  • No wallpaper? Add images to ~/Pictures/wallpapers/"
+echo ""
+echo -e "${YELLOW}Debug keybindings:${NC}"
+echo -e "  Run these commands to verify your config:"
+echo -e "    ${GREEN}cat ~/.config/hypr/hyprland.conf | grep '\$terminal'${NC}"
+echo -e "    ${GREEN}cat ~/.config/hypr/hyprland.conf | grep 'bind.*T.*exec'${NC}"
 echo ""
 
 EOFPOSTINSTALL
