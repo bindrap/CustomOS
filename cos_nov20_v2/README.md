@@ -47,7 +47,9 @@ cd cos_nov20_v2
 bash build-hyprland-iso.sh
 ```
 
-The ISO will be created in `cos_nov20_v2/iso-output/`
+The ISO will be created in `cos_nov20_v2/iso-output-v2/`
+- Filename format: `customos-v2-YYYY.MM.DD-x86_64.iso`
+- Example: `customos-v2-2025.11.21-x86_64.iso`
 
 ### Add Custom Wallpapers (Optional)
 
@@ -213,7 +215,7 @@ cos_nov20_v2/
 ├── build-hyprland-iso-clean.sh # Clean build script
 ├── Wallpapers/                 # Custom wallpapers (add yours here!)
 │   └── README.md
-├── iso-output/                 # Generated ISO files
+├── iso-output-v2/              # Generated ISO files
 ├── test-iso-qemu.sh           # QEMU testing scripts
 └── README.md                   # This file
 

@@ -27,7 +27,7 @@ ISO_NAME="customos-v2"
 ISO_VERSION=$(date +%Y%m%d-%H%M)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-OUTPUT_DIR="$SCRIPT_DIR/iso-output"
+OUTPUT_DIR="$SCRIPT_DIR/iso-output-v2"
 CACHE_DIR="$HOME/.cache/archiso-customos"
 IMAGE_NAME="archiso-builder"
 
@@ -114,7 +114,7 @@ ISO_NAME="'"$ISO_NAME"'"
 ISO_VERSION="'"$ISO_VERSION"'"
 WORK_DIR="/tmp/archiso-customos-v2"
 ISO_DIR="$WORK_DIR/iso-build"
-OUTPUT_DIR="/workspace/cos_nov20_v2/iso-output"
+OUTPUT_DIR="/workspace/cos_nov20_v2/iso-output-v2"
 
 echo "→ Cleaning old work..."
 rm -rf "$WORK_DIR"
@@ -788,17 +788,33 @@ file_permissions=(
 )
 EOFPERMS
 
-# Customize ISO label
+# Customize ISO name, label, and version
 ISO_LABEL="${ISO_NAME^^}"
 ISO_VER="${ISO_VERSION//-/}"
-sed -i "s/ARCH_[0-9]*/${ISO_LABEL}_${ISO_VER}/" profiledef.sh
+
+# Update iso_name (controls output filename)
+sed -i "s/iso_name=\"archlinux\"/iso_name=\"${ISO_NAME}\"/" profiledef.sh
+
+# Update iso_label (controls volume label)
+sed -i "s/ARCH_[0-9]*/CUSTOMOS_${ISO_VER}/" profiledef.sh
+sed -i "s/iso_label=\"ARCH_[0-9]*\"/iso_label=\"CUSTOMOS_${ISO_VER}\"/" profiledef.sh
+
+# Update iso_version (controls version in filename)
+ISO_DATE=$(date +%Y.%m.%d)
+sed -i "s/iso_version=\"[0-9.]*\"/iso_version=\"${ISO_DATE}\"/" profiledef.sh
+
+echo "→ ISO customization applied:"
+echo "  Name: ${ISO_NAME}"
+echo "  Label: CUSTOMOS_${ISO_VER}"
+echo "  Version: ${ISO_DATE}"
 
 # Build ISO
 echo ""
 echo "╔════════════════════════════════════════════════╗"
-echo "║  Building Hyprland ISO (10-15 minutes)         ║"
+echo "║  Building CustomOS v2 ISO (10-15 minutes)      ║"
 echo "╚════════════════════════════════════════════════╝"
 echo ""
+echo "Output will be: ${ISO_NAME}-${ISO_DATE}-x86_64.iso"
 echo "NOTE: Use BIOS mode in VirtualBox (disable EFI)"
 echo ""
 
@@ -830,14 +846,21 @@ if [ -f "$ISO_FILE" ]; then
 
     echo ""
     echo -e "${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}║  Hyprland VirtualBox ISO Build Complete!                   ║${NC}"
+    echo -e "${GREEN}║  CustomOS v2 ISO Build Complete!                          ║${NC}"
     echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}"
     echo ""
     echo -e "${GREEN}✓${NC} ISO created successfully!"
     echo ""
     echo "Details:"
     echo "  File: $ISO_FILE"
+    echo "  Name: $(basename "$ISO_FILE")"
     echo "  Size: $ISO_SIZE"
+    echo ""
+    echo "Features Included:"
+    echo "  ✓ Enhanced Hyprland configuration"
+    echo "  ✓ Complete font stack (JetBrains Mono Nerd Font, Noto, Font Awesome)"
+    echo "  ✓ Custom wallpaper support"
+    echo "  ✓ Polished Waybar with full icon support"
     echo ""
     echo "VirtualBox Fixes Included (PROVEN WORKING - TESTED IN VBOX):"
     echo "  ✓ WLR_RENDERER=pixman (TESTED & CONFIRMED WORKING)"
