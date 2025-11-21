@@ -143,9 +143,9 @@ if [ -d "/workspace/cos_nov20_v2/Wallpapers" ]; then
     # Copy all image files from Wallpapers directory
     find /workspace/cos_nov20_v2/Wallpapers -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) -exec cp {} airootfs/root/custom-setup/wallpapers/ \; 2>/dev/null || true
     WALLPAPER_COUNT=$(find airootfs/root/custom-setup/wallpapers -type f | wc -l)
-    echo "  ✓ Copied $WALLPAPER_COUNT wallpaper(s)"
+    echo "  ✓ Copied $WALLPAPER_COUNT wallpapers"
 else
-    echo "  ⚠ No Wallpapers directory found (optional)"
+    echo "  ⚠ No Wallpapers directory found - optional"
 fi
 
 # Create post-install script for Hyprland
@@ -312,10 +312,10 @@ if [ -d "$SCRIPT_DIR/dotfiles/hypr" ]; then
 
     # Verify keybinding configuration
     if grep -q "bind = \$mod, T, exec, \$terminal" ~/.config/hypr/hyprland.conf; then
-        echo -e "${GREEN}✓${NC} Terminal keybinding (ALT+T) configured"
+        echo -e "${GREEN}✓${NC} Terminal keybinding ALT+T configured"
     fi
     if grep -q "bind = SUPER, Return, exec, \$terminal" ~/.config/hypr/hyprland.conf; then
-        echo -e "${GREEN}✓${NC} Alternative terminal keybinding (SUPER+Enter) configured"
+        echo -e "${GREEN}✓${NC} Alternative terminal keybinding SUPER+Enter configured"
     fi
     if grep -q "\$terminal = kitty" ~/.config/hypr/hyprland.conf; then
         echo -e "${GREEN}✓${NC} Terminal set to kitty"
@@ -398,10 +398,10 @@ echo -e "${YELLOW}Next steps:${NC}"
 echo -e "  1. Type ${GREEN}reboot${NC} to restart"
 echo -e "  2. Hyprland will auto-start on login"
 echo ""
-echo -e "${YELLOW}Keybindings (Mod = ALT):${NC}"
-echo -e "  ${BLUE}ALT + T${NC}         - Terminal (kitty)"
-echo -e "  ${BLUE}SUPER + Enter${NC}   - Terminal (alternative)"
-echo -e "  ${BLUE}ALT + A${NC}         - App launcher (wofi)"
+echo -e "${YELLOW}Keybindings - Mod = ALT:${NC}"
+echo -e "  ${BLUE}ALT + T${NC}         - Terminal kitty"
+echo -e "  ${BLUE}SUPER + Enter${NC}   - Terminal alternative"
+echo -e "  ${BLUE}ALT + A${NC}         - App launcher wofi"
 echo -e "  ${BLUE}ALT + Q${NC}         - Close window"
 echo -e "  ${BLUE}ALT + E${NC}         - File manager"
 echo -e "  ${BLUE}ALT + M${NC}         - Exit Hyprland"
@@ -521,7 +521,7 @@ echo "  Version: ${ISO_DATE}"
 # Build ISO
 echo ""
 echo "=================================================="
-echo "  Building CustomOS v2 ISO (10-15 minutes)"
+echo "  Building CustomOS v2 ISO - 10-15 minutes"
 echo "=================================================="
 echo ""
 echo "Output will be: ${ISO_NAME}-${ISO_DATE}-x86_64.iso"
