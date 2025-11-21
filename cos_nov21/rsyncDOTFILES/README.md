@@ -31,7 +31,8 @@ bash rsync-push-dotfiles.sh
 This will:
 - Upload dotfiles from your local machine to the VM
 - Store them in `/home/test/dotfiles` in the VM
-- Apply your local changes to the VM
+- **Automatically ask if you want to apply them to ~/.config/**
+- Apply your local changes to the VM instantly
 
 ## Workflow
 
@@ -69,27 +70,33 @@ This will:
 
 1. **Edit locally**: Edit files in `rsyncDOTFILES/` with your favorite editor
 2. **Push to VM**: Run `bash rsync-push-dotfiles.sh`
-3. **Test in VM**: See your changes in the VM
-4. **Iterate**: Repeat as needed
+3. **Auto-apply**: Script will ask if you want to apply configs (say yes!)
+4. **Reload services**: Restart waybar/kitty to see changes
+5. **Iterate**: Repeat as needed
 
-### Applying Changes in the VM
+### Applying Changes
 
-After pushing dotfiles, you may need to:
+The push script **automatically applies configs** after upload if you choose "yes" when prompted.
 
-1. **Copy to actual config locations**:
+To see the changes take effect:
+
+1. **Reload services**:
    ```bash
-   # SSH into VM
-   ssh -p 2222 test@localhost
+   # For Waybar (via SSH or in VM terminal)
+   killall waybar && waybar &
 
-   # Copy dotfiles to their actual locations
-   cp -r ~/dotfiles/hypr/* ~/.config/hypr/
-   cp -r ~/dotfiles/waybar/* ~/.config/waybar/
-   # etc...
+   # For Kitty
+   # Open new terminal or press Ctrl+Shift+F5
+
+   # For Hyprland
+   # SUPER + Shift + M, then log back in
    ```
 
-2. **Reload the window manager**:
-   - For Hyprland: `SUPER + Shift + R` or restart Hyprland
-   - For Waybar: `killall waybar && waybar &`
+2. **Manual application** (if you skipped auto-apply):
+   ```bash
+   ssh -p 2222 test@localhost
+   cp -r ~/dotfiles/* ~/.config/
+   ```
 
 ## Tips
 

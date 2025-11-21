@@ -92,6 +92,39 @@ case $CHOICE in
             echo -e "${GREEN}✓${NC} Dotfiles successfully pushed to VM!"
             echo ""
             echo "Files are now in VM at: $VM_DIR"
+
+            # Ask if user wants to apply the configs automatically
+            echo ""
+            echo -e "${YELLOW}Apply configs to ~/.config/ now?${NC}"
+            echo "  This will run: cp -r ~/dotfiles/* ~/.config/"
+            read -p "Apply configs? (yes/no): " APPLY_CONFIGS
+
+            if [ "$APPLY_CONFIGS" = "yes" ]; then
+                echo ""
+                echo -e "${YELLOW}→${NC} Applying configs to ~/.config/..."
+
+                # Copy dotfiles to actual config locations
+                ssh -p "$VM_PORT" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                    "$VM_USER@$VM_HOST" "cp -r $VM_DIR/* ~/.config/" 2>/dev/null
+
+                if [ $? -eq 0 ]; then
+                    echo -e "${GREEN}✓${NC} Configs applied successfully!"
+                    echo ""
+                    echo -e "${BLUE}Restart services to see changes:${NC}"
+                    echo "  • Waybar: killall waybar && waybar &"
+                    echo "  • Hyprland: SUPER + Shift + M, then log back in"
+                    echo "  • Kitty: Open new terminal or Ctrl+Shift+F5"
+                else
+                    echo -e "${YELLOW}⚠${NC} Some files may not have copied (this is often normal)"
+                    echo "    Non-existent directories are skipped automatically"
+                fi
+            else
+                echo ""
+                echo -e "${BLUE}Skipped config application.${NC}"
+                echo "To apply manually, SSH into VM and run:"
+                echo "  ssh -p $VM_PORT $VM_USER@$VM_HOST"
+                echo "  cp -r ~/dotfiles/* ~/.config/"
+            fi
         else
             echo ""
             echo -e "${RED}✗${NC} Failed to push dotfiles"
