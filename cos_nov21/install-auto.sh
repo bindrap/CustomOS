@@ -177,7 +177,7 @@ if [ "$INSTALL_MODE" = "online" ]; then
     # Online: Use pacstrap to download and install
     echo "  Downloading and installing packages from internet..."
     if ! pacstrap /mnt base base-devel linux linux-firmware \
-        vim networkmanager sudo git; then
+        vim networkmanager sudo git openssh; then
         echo -e "${RED}✗${NC} Failed to install packages!"
         echo "This could mean:"
         echo "  - No internet connection (try manual ping test)"
@@ -201,7 +201,7 @@ else
         # Install from cache
         pacman -r /mnt -S --noconfirm --cachedir /mnt/var/cache/pacman/pkg \
             base base-devel linux linux-firmware \
-            vim networkmanager sudo git
+            vim networkmanager sudo git openssh
     else
         echo -e "${RED}✗${NC} Offline installation requires offline packages!"
         echo ""
@@ -338,8 +338,9 @@ fi
 echo "Bootloader installation verified"
 ls -la /boot/
 
-# Enable NetworkManager
+# Enable NetworkManager and SSH
 systemctl enable NetworkManager
+systemctl enable sshd
 
 # Detect if running in VirtualBox and configure accordingly
 if lspci | grep -i "virtualbox" &>/dev/null || dmesg | grep -i "vbox" &>/dev/null; then
