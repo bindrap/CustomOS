@@ -5,7 +5,9 @@ CustomOS Nov21 is a streamlined, easy-to-customize Arch Linux ISO featuring Hypr
 ## Philosophy: Simple & Editable
 
 **Everything is a file** - No complex heredocs, no embedded scripts. Just edit the files directly:
-- `post-install.sh` - The installation script
+- `install-auto.sh` - Main installation script (handles disk partitioning)
+- `install.sh` - Base system installation
+- `post-install.sh` - Hyprland and desktop environment setup
 - `dotfiles/` - All Hyprland, Waybar, and application configs
 - `build-hyprland-iso.sh` - Simple ISO builder that copies these files
 
@@ -89,7 +91,9 @@ bash build-hyprland-iso.sh
 ```
 cos_nov21/
 ├── build-hyprland-iso.sh      # Main build script
-├── post-install.sh             # Standalone installation script
+├── install-auto.sh             # Auto-detect online/offline installation
+├── install.sh                  # Base system installation
+├── post-install.sh             # Desktop environment setup
 ├── dotfiles/                   # All configuration files
 │   ├── hypr/                   # Hyprland config
 │   │   └── hyprland.conf       # Main Hyprland config (edit freely!)

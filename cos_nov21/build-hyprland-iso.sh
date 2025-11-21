@@ -35,14 +35,24 @@ echo -e "${YELLOW}CustomOS Nov21 - Simplified Hyprland ISO${NC}"
 echo "Output: $OUTPUT_DIR/${ISO_NAME}-${ISO_VERSION}.iso"
 echo ""
 echo "Includes:"
-echo "  ✓ Hyprland with SUPER key bindings"
+echo "  ✓ Hyprland with ALT key bindings"
 echo "  ✓ Complete font stack"
 echo "  ✓ Waybar + Mako + Wofi"
 echo "  ✓ All configs in cos_nov21/dotfiles/"
-echo "  ✓ Separate post-install script"
+echo "  ✓ Full installation scripts"
 echo ""
 
 # Verify files exist
+if [ ! -f "$SCRIPT_DIR/install-auto.sh" ]; then
+    echo -e "${RED}✗${NC} install-auto.sh not found!"
+    exit 1
+fi
+
+if [ ! -f "$SCRIPT_DIR/install.sh" ]; then
+    echo -e "${RED}✗${NC} install.sh not found!"
+    exit 1
+fi
+
 if [ ! -f "$SCRIPT_DIR/post-install.sh" ]; then
     echo -e "${RED}✗${NC} post-install.sh not found!"
     exit 1
@@ -135,12 +145,30 @@ else
     exit 1
 fi
 
-# Copy post-install script
-echo "→ Copying post-install script..."
+# Copy installation scripts
+echo "→ Copying installation scripts..."
+if [ -f "/workspace/cos_nov21/install-auto.sh" ]; then
+    cp /workspace/cos_nov21/install-auto.sh airootfs/root/custom-setup/
+    chmod +x airootfs/root/custom-setup/install-auto.sh
+    echo "  ✓ install-auto.sh copied"
+else
+    echo "  ✗ ERROR: install-auto.sh not found!"
+    exit 1
+fi
+
+if [ -f "/workspace/cos_nov21/install.sh" ]; then
+    cp /workspace/cos_nov21/install.sh airootfs/root/custom-setup/
+    chmod +x airootfs/root/custom-setup/install.sh
+    echo "  ✓ install.sh copied"
+else
+    echo "  ✗ ERROR: install.sh not found!"
+    exit 1
+fi
+
 if [ -f "/workspace/cos_nov21/post-install.sh" ]; then
     cp /workspace/cos_nov21/post-install.sh airootfs/root/custom-setup/
     chmod +x airootfs/root/custom-setup/post-install.sh
-    echo "  ✓ Post-install script copied"
+    echo "  ✓ post-install.sh copied"
 else
     echo "  ✗ ERROR: post-install.sh not found!"
     exit 1
@@ -163,11 +191,11 @@ mkdir -p airootfs/usr/local/bin
 cat > airootfs/usr/local/bin/install-arch << "EOFCMD"
 #!/bin/bash
 cd /root/custom-setup || exit 1
-if [ -f post-install.sh ]; then
-    chmod +x post-install.sh
-    exec bash ./post-install.sh
+if [ -f install-auto.sh ]; then
+    chmod +x install-auto.sh
+    exec bash ./install-auto.sh
 else
-    echo "Error: post-install.sh not found!"
+    echo "Error: install-auto.sh not found!"
     exit 1
 fi
 EOFCMD
@@ -198,6 +226,8 @@ cat >> profiledef.sh << "EOFPERMS"
 file_permissions=(
   ["/usr/local/bin/install-arch"]="0:0:755"
   ["/root/custom-setup"]="0:0:755"
+  ["/root/custom-setup/install-auto.sh"]="0:0:755"
+  ["/root/custom-setup/install.sh"]="0:0:755"
   ["/root/custom-setup/post-install.sh"]="0:0:755"
   ["/root"]="0:0:750"
 )
@@ -257,9 +287,9 @@ if [ -f "$ISO_FILE" ]; then
     echo "  Size: $ISO_SIZE"
     echo ""
     echo "Features:"
-    echo "  ✓ SUPER key bindings (SUPER+T for terminal)"
+    echo "  ✓ ALT key bindings (ALT+T for terminal)"
     echo "  ✓ All configs in cos_nov21/dotfiles/"
-    echo "  ✓ Separate post-install.sh for easy editing"
+    echo "  ✓ Separate installation scripts for easy editing"
     echo "  ✓ Complete font stack"
     echo "  ✓ Waybar, Mako, Wofi pre-configured"
     echo ""
