@@ -379,6 +379,31 @@ env = WLR_NO_HARDWARE_CURSORS,1
 env = WLR_RENDERER_ALLOW_SOFTWARE,1
 env = WLR_DRM_DEVICES,
 env = XDG_SESSION_TYPE,wayland
+
+# Ensure ALT is mod key (override any previous setting)
+\$mod = ALT
+
+# Disable resource-intensive features for VirtualBox
+decoration {
+    blur {
+        enabled = false
+    }
+    drop_shadow = false
+}
+
+animations {
+    enabled = true
+    bezier = simple, 0.16, 1, 0.3, 1
+    animation = windows, 1, 3, simple
+    animation = fade, 1, 3, simple
+    animation = workspaces, 1, 3, simple
+}
+
+misc {
+    disable_hyprland_logo = true
+    disable_splash_rendering = true
+    vfr = true
+}
 EOFVBOX
 
     echo -e "${GREEN}✓${NC} VirtualBox optimizations applied"
