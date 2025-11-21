@@ -171,9 +171,9 @@ NC="\033[0m"
 clear
 echo -e "${CYAN}"
 cat << '\''EOF'\''
-╔═══════════════════════════════════════════════════╗
-║   Hyprland Setup - Custom Arch Linux             ║
-╚═══════════════════════════════════════════════════╝
+===================================================
+   Hyprland Setup - Custom Arch Linux
+===================================================
 EOF
 echo -e "${NC}"
 
@@ -385,9 +385,9 @@ fi
 clear
 echo -e "${GREEN}"
 cat << '\''EOF'\''
-╔═══════════════════════════════════════════════════╗
-║          Setup Complete!                          ║
-╚═══════════════════════════════════════════════════╝
+===================================================
+          Setup Complete!
+===================================================
 EOF
 echo -e "${NC}"
 
@@ -434,20 +434,20 @@ chmod +x airootfs/root/custom-setup/dotfiles/waybar/scripts/* 2>/dev/null || tru
 cat > airootfs/root/.zshrc << '\''EOFZSH'\''
 cat << "WELCOME"
 
-╔════════════════════════════════════════════════════════════╗
-║                  Hyprland Custom Arch ISO                  ║
-╠════════════════════════════════════════════════════════════╣
-║                                                            ║
-║  INSTALLATION:                                             ║
-║                                                            ║
-║    Run: install-arch                                       ║
-║                                                            ║
-║  This will:                                                ║
-║    • Install base Arch Linux                              ║
-║    • Copy Hyprland setup                                  ║
-║    • On first login: Run post-install                     ║
-║                                                            ║
-╚════════════════════════════════════════════════════════════╝
+============================================================
+                  Hyprland Custom Arch ISO
+============================================================
+
+  INSTALLATION:
+
+    Run: install-arch
+
+  This will:
+    - Install base Arch Linux
+    - Copy Hyprland setup
+    - On first login: Run post-install
+
+============================================================
 
 WELCOME
 echo ""
@@ -520,9 +520,9 @@ echo "  Version: ${ISO_DATE}"
 
 # Build ISO
 echo ""
-echo "╔════════════════════════════════════════════════╗"
-echo "║  Building CustomOS v2 ISO (10-15 minutes)      ║"
-echo "╚════════════════════════════════════════════════╝"
+echo "=================================================="
+echo "  Building CustomOS v2 ISO (10-15 minutes)"
+echo "=================================================="
 echo ""
 echo "Output will be: ${ISO_NAME}-${ISO_DATE}-x86_64.iso"
 echo ""
@@ -534,9 +534,9 @@ ISO_FILE=$(ls -t "$OUTPUT_DIR"/*.iso 2>/dev/null | head -1)
 if [ -f "$ISO_FILE" ]; then
     ISO_SIZE=$(du -h "$ISO_FILE" | cut -f1)
     echo ""
-    echo "╔════════════════════════════════════════════════╗"
-    echo "║  ISO Build Complete!                           ║"
-    echo "╚════════════════════════════════════════════════╝"
+    echo "=================================================="
+    echo "  ISO Build Complete!"
+    echo "=================================================="
     echo ""
     echo "ISO: $ISO_FILE"
     echo "Size: $ISO_SIZE"
