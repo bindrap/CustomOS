@@ -1,0 +1,10 @@
+# Greetd configuration for CustomOS
+# Login screen with GTK greeter
+
+[terminal]
+vt = 1
+
+[default_session]
+# Run gtkgreet with layer-shell support and custom CSS
+command = "gtkgreet -l -s /etc/greetd/gtkgreet.css; sway"
+user = "greeter"

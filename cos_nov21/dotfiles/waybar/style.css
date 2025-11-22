@@ -1,137 +1,106 @@
-/* Auto-themed Waybar Style - Colors imported from theme system */
+/* macOS-Inspired Minimalist Waybar Style */
 @import "colors.css";
 
-/* Fallback Catppuccin Mocha colors (if colors.css doesn't exist) */
-@define-color rosewater #f5e0dc;
-@define-color flamingo #f2cdcd;
-@define-color pink #f5c2e7;
-@define-color mauve #cba6f7;
-@define-color red #f38ba8;
-@define-color maroon #eba0ac;
-@define-color peach #fab387;
-@define-color yellow #f9e2af;
-@define-color green #a6e3a1;
-@define-color teal #94e2d5;
-@define-color sky #89dceb;
-@define-color sapphire #74c7ec;
-@define-color blue #89b4fa;
-@define-color lavender #b4befe;
-@define-color text #cdd6f4;
-@define-color subtext1 #bac2de;
-@define-color subtext0 #a6adc8;
-@define-color overlay2 #9399b2;
-@define-color overlay1 #7f849c;
-@define-color overlay0 #6c7086;
-@define-color surface2 #585b70;
-@define-color surface1 #45475a;
-@define-color surface0 #313244;
-@define-color base #1e1e2e;
-@define-color mantle #181825;
-@define-color crust #11111b;
-
 * {
-    font-family: "JetBrainsMono Nerd Font", "JetBrains Mono", "Font Awesome 6 Free", "Noto Sans", sans-serif;
-    font-size: 13px;
+    font-family: "SF Pro Display", "JetBrainsMono Nerd Font", "Font Awesome 6 Free", sans-serif;
+    font-size: 12px;
     font-weight: 500;
     min-height: 0;
 }
 
 window#waybar {
-    background: alpha(@base, 0.90);
+    background: rgba(0, 0, 0, 0);
     color: @text;
     border: none;
-    border-bottom: 2px solid alpha(@surface0, 0.8);
-    transition: background-color 0.2s ease;
+}
+
+window#waybar.empty {
+    background: rgba(0, 0, 0, 0);
+}
+
+/* Left Section - Workspaces and Window */
+#workspaces,
+#window {
+    background: rgba(30, 30, 46, 0.85);
+    margin: 4px 0px 4px 6px;
+    padding: 2px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(205, 214, 244, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* Workspaces */
 #workspaces {
-    background: transparent;
-    margin: 2px 4px;
-    padding: 0;
+    padding: 2px 6px;
 }
 
 #workspaces button {
-    padding: 0 8px;
-    color: @subtext0;
+    padding: 1px 6px;
+    color: @overlay1;
     background: transparent;
     border: none;
-    border-radius: 0;
+    border-radius: 8px;
+    margin: 0 1px;
+    transition: all 0.2s ease;
 }
 
 #workspaces button.active {
-    color: @blue;
-    background: alpha(@surface0, 0.8);
+    color: @text;
+    background: rgba(49, 50, 68, 0.8);
 }
 
 #workspaces button.urgent {
     color: @red;
+    background: rgba(243, 139, 168, 0.2);
 }
 
 #workspaces button:hover {
-    background: alpha(@surface0, 0.5);
+    background: rgba(49, 50, 68, 0.5);
     color: @text;
 }
 
 /* Window Title */
 #window {
-    margin: 0 8px;
-    padding: 0 8px;
     color: @text;
+    font-weight: 500;
+    padding: 2px 12px;
+    margin-left: 6px;
 }
 
-/* Clock */
+/* Center Section - Clock */
 #clock {
-    padding: 0 12px;
-    color: @blue;
-    font-weight: bold;
+    background: rgba(30, 30, 46, 0.85);
+    padding: 2px 16px;
+    margin: 4px 6px;
+    color: @text;
+    font-weight: 600;
+    border-radius: 10px;
+    border: 1px solid rgba(205, 214, 244, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    letter-spacing: 0.5px;
 }
 
-/* All Right Modules */
-#custom-weather,
-#custom-keybinds,
-#bluetooth,
+/* Right Section - System Indicators */
 #network,
 #pulseaudio,
-#cpu,
-#memory,
-#temperature,
-#battery,
-#tray,
-#custom-power {
-    padding: 0 8px;
-    margin: 0 2px;
-    color: @text;
-    background: transparent;
+#tray {
+    background: rgba(30, 30, 46, 0.85);
+    padding: 2px 8px;
+    margin: 4px 2px;
+    border-radius: 10px;
+    border: 1px solid rgba(205, 214, 244, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s ease;
 }
 
-/* Individual Module Styling */
-#custom-weather {
-    color: @yellow;
-}
-
-#custom-keybinds {
-    color: @lavender;
-}
-
-#custom-keybinds:hover {
-    background: alpha(@surface0, 0.5);
-}
-
-#bluetooth {
-    color: @blue;
-}
-
-#bluetooth.disconnected {
-    color: @overlay0;
-}
-
+/* Individual Module Colors */
 #network {
     color: @green;
 }
 
 #network.disconnected {
     color: @overlay0;
+    opacity: 0.6;
 }
 
 #pulseaudio {
@@ -140,49 +109,12 @@ window#waybar {
 
 #pulseaudio.muted {
     color: @overlay0;
-}
-
-#cpu {
-    color: @peach;
-}
-
-#memory {
-    color: @sky;
-}
-
-#temperature {
-    color: @teal;
-}
-
-#temperature.critical {
-    color: @red;
-}
-
-#battery {
-    color: @green;
-}
-
-#battery.charging {
-    color: @yellow;
-}
-
-#battery.warning:not(.charging) {
-    color: @peach;
-}
-
-#battery.critical:not(.charging) {
-    color: @red;
-    animation: blink 1s linear infinite;
-}
-
-@keyframes blink {
-    to {
-        color: @base;
-    }
+    opacity: 0.6;
 }
 
 #tray {
-    background: transparent;
+    padding: 2px 6px;
+    margin-right: 2px;
 }
 
 #tray > .passive {
@@ -193,25 +125,22 @@ window#waybar {
     -gtk-icon-effect: highlight;
 }
 
-#custom-power {
-    color: @red;
-    font-size: 16px;
-    padding: 0 10px;
-}
-
-#custom-power:hover {
-    background: alpha(@surface0, 0.5);
-}
-
 /* Tooltips */
 tooltip {
-    background: alpha(@base, 0.95);
-    border: 2px solid @surface0;
+    background: rgba(30, 30, 46, 0.95);
+    border: 1px solid rgba(205, 214, 244, 0.15);
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
 }
 
 tooltip label {
     color: @text;
-    font-size: 12px;
+}
+
+/* Hover effects */
+#network:hover,
+#pulseaudio:hover {
+    background: rgba(69, 71, 90, 0.7);
+    border: 1px solid rgba(205, 214, 244, 0.2);
 }
