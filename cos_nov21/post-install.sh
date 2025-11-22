@@ -73,6 +73,7 @@ sudo pacman -S --needed --noconfirm \
     sway \
     greetd \
     greetd-gtkgreet \
+    cage \
     firefox \
     thunar \
     ranger \
@@ -191,10 +192,16 @@ fi
 if [ -d "$SCRIPT_DIR/dotfiles/greetd" ]; then
     sudo mkdir -p /etc/greetd
     sudo cp "$SCRIPT_DIR/dotfiles/greetd/config.toml" /etc/greetd/config.toml
-    sudo cp "$SCRIPT_DIR/dotfiles/greetd/gtkgreet.css" /etc/greetd/gtkgreet.css
 
-    # Update config to use current user
-    sudo sed -i "s/user = \"greeter\"/user = \"$USER\"/" /etc/greetd/config.toml
+    # Copy CSS if it exists (optional for gtkgreet styling)
+    if [ -f "$SCRIPT_DIR/dotfiles/greetd/gtkgreet.css" ]; then
+        sudo cp "$SCRIPT_DIR/dotfiles/greetd/gtkgreet.css" /etc/greetd/gtkgreet.css
+    fi
+
+    # Copy environments file if it exists
+    if [ -f "$SCRIPT_DIR/dotfiles/greetd/environments" ]; then
+        sudo cp "$SCRIPT_DIR/dotfiles/greetd/environments" /etc/greetd/environments
+    fi
 
     echo -e "${GREEN}✓${NC} Login screen configured"
 else
