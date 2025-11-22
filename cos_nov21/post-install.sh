@@ -72,8 +72,7 @@ sudo pacman -S --needed --noconfirm \
     swaylock \
     sway \
     greetd \
-    greetd-gtkgreet \
-    cage \
+    greetd-tuigreet \
     firefox \
     thunar \
     ranger \
@@ -175,35 +174,13 @@ if [ -d "$SCRIPT_DIR/wallpapers" ]; then
     echo -e "${GREEN}✓${NC} Wallpapers copied"
 fi
 
-# Setup login screen wallpaper
+# Configure greetd
 echo ""
 echo -e "${YELLOW}→${NC} Setting up login screen..."
-sudo mkdir -p /usr/share/backgrounds/customos
-if [ -d ~/Pictures/wallpapers ] && [ "$(ls -A ~/Pictures/wallpapers/*.{png,jpg,jpeg} 2>/dev/null)" ]; then
-    FIRST_WALLPAPER=$(find ~/Pictures/wallpapers -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" \) | head -1)
-    sudo cp "$FIRST_WALLPAPER" /usr/share/backgrounds/customos/login-wallpaper.jpg
-    echo -e "${GREEN}✓${NC} Login wallpaper set"
-else
-    # Create a solid color background if no wallpaper exists
-    echo -e "${YELLOW}⚠${NC} No wallpapers found, using solid color for login screen"
-fi
-
-# Configure greetd
 if [ -d "$SCRIPT_DIR/dotfiles/greetd" ]; then
     sudo mkdir -p /etc/greetd
     sudo cp "$SCRIPT_DIR/dotfiles/greetd/config.toml" /etc/greetd/config.toml
-
-    # Copy CSS if it exists (optional for gtkgreet styling)
-    if [ -f "$SCRIPT_DIR/dotfiles/greetd/gtkgreet.css" ]; then
-        sudo cp "$SCRIPT_DIR/dotfiles/greetd/gtkgreet.css" /etc/greetd/gtkgreet.css
-    fi
-
-    # Copy environments file if it exists
-    if [ -f "$SCRIPT_DIR/dotfiles/greetd/environments" ]; then
-        sudo cp "$SCRIPT_DIR/dotfiles/greetd/environments" /etc/greetd/environments
-    fi
-
-    echo -e "${GREEN}✓${NC} Login screen configured"
+    echo -e "${GREEN}✓${NC} Login screen configured (tuigreet)"
 else
     echo -e "${YELLOW}⚠${NC} Greetd config not found, skipping"
 fi
