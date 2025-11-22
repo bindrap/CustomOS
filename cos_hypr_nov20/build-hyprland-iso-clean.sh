@@ -169,7 +169,6 @@ if ping -c 2 archlinux.org &>/dev/null; then
     echo -e "${GREEN}✓${NC} Internet connection detected"
 else
     echo -e "${RED}✗${NC} No internet connection!"
-    exit 1
 fi
 
 # Update system

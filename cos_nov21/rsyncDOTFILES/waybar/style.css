@@ -1,0 +1,244 @@
+/* macOS-Inspired Minimalist Waybar Style */
+@import "colors.css";
+
+* {
+    font-family: "SF Pro Display", "JetBrainsMono Nerd Font", "Font Awesome 6 Free", sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    min-height: 0;
+}
+
+window#waybar {
+    background: rgba(0, 0, 0, 0);
+    color: @text;
+    border: none;
+}
+
+window#waybar.empty {
+    background: rgba(0, 0, 0, 0);
+}
+
+/* Left Section - Workspaces and Window */
+#workspaces,
+#window {
+    background: rgba(30, 30, 46, 0.85);
+    margin: 4px 0px 4px 6px;
+    padding: 2px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(205, 214, 244, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Workspaces */
+#workspaces {
+    padding: 2px 6px;
+}
+
+#workspaces button {
+    padding: 1px 6px;
+    color: @overlay1;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    margin: 0 1px;
+    transition: all 0.2s ease;
+}
+
+#workspaces button.active {
+    color: @text;
+    background: rgba(49, 50, 68, 0.8);
+}
+
+#workspaces button.urgent {
+    color: @red;
+    background: rgba(243, 139, 168, 0.2);
+}
+
+#workspaces button:hover {
+    background: rgba(49, 50, 68, 0.5);
+    color: @text;
+}
+
+/* Window Title */
+#window {
+    color: @text;
+    font-weight: 500;
+    padding: 2px 12px;
+    margin-left: 6px;
+}
+
+/* Center Section - Clock */
+#clock {
+    background: rgba(30, 30, 46, 0.85);
+    padding: 2px 16px;
+    margin: 4px 6px;
+    color: @text;
+    font-weight: 600;
+    border-radius: 10px;
+    border: 1px solid rgba(205, 214, 244, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    letter-spacing: 0.5px;
+}
+
+/* Right Section - System Indicators */
+#custom-weather,
+#custom-keybinds,
+#bluetooth,
+#network,
+#pulseaudio,
+#cpu,
+#memory,
+#temperature,
+#battery,
+#tray,
+#custom-power {
+    background: rgba(30, 30, 46, 0.85);
+    padding: 2px 8px;
+    margin: 4px 2px;
+    border-radius: 10px;
+    border: 1px solid rgba(205, 214, 244, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s ease;
+}
+
+/* Group system stats together */
+#cpu,
+#memory,
+#temperature {
+    margin: 4px 1px;
+}
+
+#cpu {
+    margin-left: 2px;
+    border-radius: 10px 0 0 10px;
+}
+
+#temperature {
+    margin-right: 2px;
+    border-radius: 0 10px 10px 0;
+}
+
+#memory {
+    border-radius: 0;
+    margin: 4px 0px;
+}
+
+/* Individual Module Colors */
+#custom-weather {
+    color: @yellow;
+}
+
+#custom-keybinds {
+    color: @lavender;
+}
+
+#custom-keybinds:hover {
+    background: rgba(180, 190, 254, 0.2);
+}
+
+#bluetooth {
+    color: @blue;
+}
+
+#bluetooth.disconnected {
+    color: @overlay0;
+    opacity: 0.6;
+}
+
+#network {
+    color: @green;
+}
+
+#network.disconnected {
+    color: @overlay0;
+    opacity: 0.6;
+}
+
+#pulseaudio {
+    color: @mauve;
+}
+
+#pulseaudio.muted {
+    color: @overlay0;
+    opacity: 0.6;
+}
+
+#cpu {
+    color: @peach;
+}
+
+#memory {
+    color: @sky;
+}
+
+#temperature {
+    color: @teal;
+}
+
+#temperature.critical {
+    color: @red;
+}
+
+#battery {
+    color: @green;
+}
+
+#battery.charging {
+    color: @yellow;
+}
+
+#battery.warning:not(.charging) {
+    color: @peach;
+}
+
+#battery.critical:not(.charging) {
+    color: @red;
+}
+
+#tray {
+    padding: 2px 6px;
+    margin-right: 2px;
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+}
+
+#custom-power {
+    color: @text;
+    font-size: 14px;
+    padding: 2px 10px;
+    margin-right: 6px;
+}
+
+#custom-power:hover {
+    background: rgba(243, 139, 168, 0.2);
+    color: @red;
+}
+
+/* Tooltips */
+tooltip {
+    background: rgba(30, 30, 46, 0.95);
+    border: 1px solid rgba(205, 214, 244, 0.15);
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+tooltip label {
+    color: @text;
+}
+
+/* Hover effects */
+#custom-weather:hover,
+#bluetooth:hover,
+#network:hover,
+#pulseaudio:hover,
+#battery:hover {
+    background: rgba(69, 71, 90, 0.7);
+    border: 1px solid rgba(205, 214, 244, 0.2);
+}

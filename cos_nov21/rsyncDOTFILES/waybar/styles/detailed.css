@@ -1,0 +1,180 @@
+/* Detailed Waybar Style - More information, colorful */
+@import "colors.css";
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Font Awesome 6 Free";
+    font-size: 13px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: alpha(@background, 0.95);
+    color: @foreground;
+    border: none;
+    border-bottom: 2px solid @color4;
+}
+
+/* Workspaces */
+#workspaces {
+    background: transparent;
+    margin: 2px 4px;
+    padding: 0;
+}
+
+#workspaces button {
+    padding: 0 10px;
+    color: @color7;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+#workspaces button.active {
+    color: @color4;
+    background: alpha(@color4, 0.2);
+    border-bottom: 2px solid @color4;
+}
+
+#workspaces button.urgent {
+    color: @color1;
+    background: alpha(@color1, 0.2);
+    border-bottom: 2px solid @color1;
+}
+
+#workspaces button:hover {
+    background: alpha(@color4, 0.1);
+    color: @color4;
+}
+
+/* Window Title */
+#window {
+    margin: 0 8px;
+    padding: 0 12px;
+    color: @color6;
+    font-weight: bold;
+}
+
+/* Clock */
+#clock {
+    padding: 0 16px;
+    color: @color4;
+    background: alpha(@color4, 0.15);
+    font-weight: bold;
+    border-left: 2px solid @color4;
+    border-right: 2px solid @color4;
+}
+
+/* Individual Module Styling with Colors */
+#custom-weather {
+    color: @color3;
+    background: alpha(@color3, 0.15);
+    border-left: 2px solid @color3;
+}
+
+#bluetooth {
+    color: @color4;
+    background: alpha(@color4, 0.15);
+}
+
+#bluetooth.disconnected {
+    color: @color8;
+    background: transparent;
+}
+
+#network {
+    color: @color2;
+    background: alpha(@color2, 0.15);
+}
+
+#network.disconnected {
+    color: @color8;
+    background: transparent;
+}
+
+#pulseaudio {
+    color: @color5;
+    background: alpha(@color5, 0.15);
+}
+
+#pulseaudio.muted {
+    color: @color8;
+    background: transparent;
+}
+
+#cpu {
+    color: @color9;
+    background: alpha(@color9, 0.15);
+}
+
+#memory {
+    color: @color6;
+    background: alpha(@color6, 0.15);
+}
+
+#temperature {
+    color: @color10;
+    background: alpha(@color10, 0.15);
+}
+
+#temperature.critical {
+    color: @color1;
+    background: alpha(@color1, 0.2);
+    animation: blink 1s linear infinite;
+}
+
+#battery {
+    color: @color2;
+    background: alpha(@color2, 0.15);
+}
+
+#battery.charging {
+    color: @color3;
+    background: alpha(@color3, 0.15);
+}
+
+#battery.warning:not(.charging) {
+    color: @color3;
+    background: alpha(@color3, 0.2);
+}
+
+#battery.critical:not(.charging) {
+    color: @color1;
+    background: alpha(@color1, 0.2);
+    animation: blink 1s linear infinite;
+}
+
+@keyframes blink {
+    to {
+        background: transparent;
+    }
+}
+
+#tray {
+    background: alpha(@color8, 0.1);
+    padding: 0 8px;
+}
+
+#custom-power {
+    color: @color1;
+    background: alpha(@color1, 0.15);
+    font-size: 16px;
+    padding: 0 12px;
+    margin-right: 4px;
+    border-right: 2px solid @color1;
+}
+
+#custom-power:hover {
+    background: alpha(@color1, 0.3);
+}
+
+tooltip {
+    background: @background;
+    border: 2px solid @color4;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+tooltip label {
+    color: @foreground;
+}
