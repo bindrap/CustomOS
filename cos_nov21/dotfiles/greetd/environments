@@ -1,0 +1,16 @@
+# Greetd environment variables
+# This file sets up the environment for the greeter
+
+# Set XDG environment
+XDG_SESSION_TYPE=wayland
+XDG_CURRENT_DESKTOP=Hyprland
+XDG_SESSION_DESKTOP=Hyprland
+
+# GTK and Qt theming
+GTK_THEME=Adwaita:dark
+QT_QPA_PLATFORMTHEME=qt5ct
+
+# Wayland-specific
+WAYLAND_DISPLAY=wayland-1
+GDK_BACKEND=wayland
+CLUTTER_BACKEND=wayland

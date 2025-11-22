@@ -1,31 +1,19 @@
 #!/bin/bash
-# Set random wallpaper from current theme
+# Set random wallpaper from available wallpapers
 
-HYPR_DIR="$HOME/.config/hypr"
-WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
-THEME_NAME=$(cat "$HYPR_DIR/.current-theme" 2>/dev/null || echo "catppuccin-mocha")
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/wallpaper-lib.sh"
 
-# Get list of wallpapers
-if [ -d "$WALLPAPER_DIR/$THEME_NAME" ]; then
-    WALLPAPER=$(find "$WALLPAPER_DIR/$THEME_NAME" -type f \( -name "*.jpg" -o -name "*.png" \) | shuf -n 1)
-else
-    WALLPAPER=$(find "$WALLPAPER_DIR" -maxdepth 1 -type f \( -name "*.jpg" -o -name "*.png" \) | shuf -n 1)
-fi
+# Get wallpaper list
+WALLPAPER_LIST=($(get_wallpaper_list))
 
-if [ -z "$WALLPAPER" ]; then
-    notify-send "No Wallpapers" "No wallpapers found" -u critical
+if [ ${#WALLPAPER_LIST[@]} -eq 0 ]; then
+    notify-send "No Wallpapers" "No wallpapers found in $WALLPAPER_DIR" -u critical
     exit 1
 fi
 
-# Set wallpaper
-if command -v swww >/dev/null 2>&1; then
-    swww img "$WALLPAPER" --transition-type random --transition-fps 60
-else
-    killall hyprpaper 2>/dev/null
-    echo "preload = $WALLPAPER" > "$HYPR_DIR/hyprpaper.conf"
-    echo "wallpaper = ,$WALLPAPER" >> "$HYPR_DIR/hyprpaper.conf"
-    hyprpaper &
-fi
+# Pick random wallpaper
+RANDOM_WALLPAPER="${WALLPAPER_LIST[$RANDOM % ${#WALLPAPER_LIST[@]}]}"
 
-echo "$WALLPAPER" > "$HYPR_DIR/.current-wallpaper"
-notify-send "Wallpaper Changed" "$(basename "$WALLPAPER")" -t 2000
+# Set it
+set_wallpaper "$RANDOM_WALLPAPER"

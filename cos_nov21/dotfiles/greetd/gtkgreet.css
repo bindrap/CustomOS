@@ -1,0 +1,77 @@
+/* GTKGreet styling for CustomOS */
+
+window {
+    background-image: url("file:///usr/share/backgrounds/customos/login-wallpaper.jpg");
+    background-size: cover;
+    background-position: center;
+}
+
+/* Login box styling */
+box {
+    background-color: rgba(30, 30, 46, 0.85);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+/* Labels */
+label {
+    color: #cdd6f4;
+    font-size: 14px;
+    font-family: "JetBrains Mono", monospace;
+}
+
+/* Input fields */
+entry {
+    background-color: rgba(49, 50, 68, 0.9);
+    color: #cdd6f4;
+    border: 2px solid #89b4fa;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 13px;
+    min-width: 300px;
+}
+
+entry:focus {
+    border-color: #89dceb;
+    background-color: rgba(49, 50, 68, 1);
+}
+
+/* Buttons */
+button {
+    background-color: #89b4fa;
+    color: #1e1e2e;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-weight: bold;
+    font-size: 13px;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: #89dceb;
+    box-shadow: 0 4px 8px rgba(137, 180, 250, 0.3);
+}
+
+button:active {
+    background-color: #74c7ec;
+}
+
+/* Session selector */
+combobox {
+    background-color: rgba(49, 50, 68, 0.9);
+    color: #cdd6f4;
+    border: 2px solid #89b4fa;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+/* Message area */
+.error {
+    color: #f38ba8;
+    font-weight: bold;
+}
+
+.info {
+    color: #94e2d5;
+}

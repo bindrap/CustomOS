@@ -71,6 +71,8 @@ sudo pacman -S --needed --noconfirm \
     swayidle \
     swaylock \
     sway \
+    greetd \
+    greetd-tuigreet \
     firefox \
     thunar \
     ranger \
@@ -138,6 +140,7 @@ echo ""
 echo -e "${YELLOW}→${NC} Enabling system services..."
 sudo systemctl enable NetworkManager
 sudo systemctl enable bluetooth
+sudo systemctl enable greetd
 echo -e "${GREEN}✓${NC} Services enabled"
 
 # Create config directories
@@ -171,22 +174,27 @@ if [ -d "$SCRIPT_DIR/wallpapers" ]; then
     echo -e "${GREEN}✓${NC} Wallpapers copied"
 fi
 
+# Configure greetd
+echo ""
+echo -e "${YELLOW}→${NC} Setting up login screen..."
+if [ -d "$SCRIPT_DIR/dotfiles/greetd" ]; then
+    sudo mkdir -p /etc/greetd
+    sudo cp "$SCRIPT_DIR/dotfiles/greetd/config.toml" /etc/greetd/config.toml
+    echo -e "${GREEN}✓${NC} Login screen configured (tuigreet)"
+else
+    echo -e "${YELLOW}⚠${NC} Greetd config not found, skipping"
+fi
+
 # Set default shell to zsh
 echo ""
 echo -e "${YELLOW}→${NC} Setting up Zsh..."
 chsh -s $(which zsh)
 echo -e "${GREEN}✓${NC} Zsh configured as default shell"
 
-# Create auto-start
+# Note: With greetd enabled, Hyprland will start from the login screen
+# No need for .zprofile auto-start
 echo ""
-echo -e "${YELLOW}→${NC} Configuring auto-start for Hyprland..."
-cat > ~/.zprofile << 'EOFZPROFILE'
-# Auto-start Hyprland on TTY1
-if [ -z "$WAYLAND_DISPLAY" ] && [ "$XDG_VTNR" -eq 1 ]; then
-    exec Hyprland 2>/tmp/hyprland.log
-fi
-EOFZPROFILE
-echo -e "${GREEN}✓${NC} Hyprland will auto-start on login"
+echo -e "${GREEN}✓${NC} Hyprland will start from login screen (greetd)"
 
 # Done!
 clear
