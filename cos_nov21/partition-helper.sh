@@ -98,6 +98,18 @@ case $OPTION in
             fi
         fi
 
+        # Check if partition is mounted and unmount it
+        echo ""
+        if mount | grep -q "$PARTITION"; then
+            echo -e "${YELLOW}→${NC} $PARTITION is currently mounted, unmounting..."
+            umount -R $PARTITION 2>/dev/null || umount $PARTITION || {
+                echo -e "${RED}✗${NC} Failed to unmount $PARTITION"
+                echo "Please manually unmount it first: sudo umount $PARTITION"
+                exit 1
+            }
+            echo "  Unmounted successfully"
+        fi
+
         # Check filesystem before resize
         echo ""
         echo -e "${YELLOW}→${NC} Checking filesystem on $PARTITION..."
@@ -269,6 +281,18 @@ case $OPTION in
         read -p "Continue with this plan? (yes/no): " CONFIRM
         if [ "$CONFIRM" != "yes" ]; then
             exit 0
+        fi
+
+        # Unmount partition if mounted
+        echo ""
+        if mount | grep -q "$PARTITION"; then
+            echo -e "${YELLOW}→${NC} $PARTITION is currently mounted, unmounting..."
+            umount -R $PARTITION 2>/dev/null || umount $PARTITION || {
+                echo -e "${RED}✗${NC} Failed to unmount $PARTITION"
+                echo "Please manually unmount it first: sudo umount $PARTITION"
+                exit 1
+            }
+            echo "  Unmounted successfully"
         fi
 
         # Check filesystem

@@ -126,6 +126,8 @@ else
     echo "  - EFI partition (if UEFI) or disk for GRUB (if BIOS)"
     echo "  - Optional: Swap partition"
     echo ""
+    echo -e "${BLUE}Note: The script will automatically unmount partitions if needed${NC}"
+    echo ""
 
     read -p "Enter root partition (e.g., sda3, nvme0n1p3): " ROOT_PART
     ROOT_PARTITION="/dev/$ROOT_PART"
@@ -281,6 +283,39 @@ if [ "$PARTITION_MODE" = "full" ]; then
     mount ${DISK_P}2 /mnt/boot
 else
     # Partition installation - use existing partitions
+
+    # Unmount partitions if they're already mounted
+    echo -e "${YELLOW}→${NC} Checking for mounted partitions..."
+
+    # Check and unmount root partition
+    if mount | grep -q "$ROOT_PARTITION"; then
+        echo "  $ROOT_PARTITION is currently mounted, unmounting..."
+        umount -R $ROOT_PARTITION 2>/dev/null || umount $ROOT_PARTITION
+    fi
+
+    # Check and unmount swap partition
+    if [ -n "$SWAP_PARTITION" ]; then
+        if swapon --show | grep -q "$SWAP_PARTITION"; then
+            echo "  $SWAP_PARTITION is currently active as swap, deactivating..."
+            swapoff $SWAP_PARTITION
+        fi
+        if mount | grep -q "$SWAP_PARTITION"; then
+            echo "  $SWAP_PARTITION is currently mounted, unmounting..."
+            umount $SWAP_PARTITION
+        fi
+    fi
+
+    # Check and unmount EFI partition (but only if it's mounted somewhere other than where we need it)
+    if [ -n "$EFI_PARTITION" ]; then
+        if mount | grep -q "$EFI_PARTITION"; then
+            echo "  $EFI_PARTITION is currently mounted, unmounting..."
+            umount $EFI_PARTITION
+        fi
+    fi
+
+    echo "  All partitions ready for formatting"
+
+    # Format root partition
     echo -e "${YELLOW}→${NC} Formatting root partition..."
     mkfs.ext4 -F $ROOT_PARTITION
 
@@ -296,10 +331,10 @@ else
     mount $ROOT_PARTITION /mnt
 
     if [ -n "$EFI_PARTITION" ]; then
-        # Mount existing EFI partition
+        # Mount existing EFI partition (don't format it!)
         mkdir -p /mnt/boot
         mount $EFI_PARTITION /mnt/boot
-        echo "Mounted existing EFI partition at /mnt/boot"
+        echo "Mounted existing EFI partition at /mnt/boot (not formatted)"
     else
         # No EFI partition - BIOS mode
         mkdir -p /mnt/boot
