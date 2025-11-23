@@ -135,6 +135,93 @@ echo -e "${YELLOW}→${NC} Building font cache..."
 fc-cache -fv > /dev/null 2>&1
 echo -e "${GREEN}✓${NC} Font cache rebuilt"
 
+# Optional Hyde Installation
+echo ""
+echo -e "${CYAN}───────────────────────────────────────────────${NC}"
+echo -e "${YELLOW}Hyde Installation Option${NC}"
+echo -e "${CYAN}───────────────────────────────────────────────${NC}"
+echo ""
+echo -e "Hyde is a comprehensive Hyprland theme manager with:"
+echo -e "  • Multiple pre-configured themes"
+echo -e "  • Advanced customization tools"
+echo -e "  • Wallpaper management"
+echo -e "  • Theme switcher and more"
+echo ""
+echo -e "${YELLOW}Note:${NC} Hyde will replace existing Hyprland configs"
+echo -e "${YELLOW}      The original configs will be backed up${NC}"
+echo ""
+read -p "Install Hyde? (yes/no): " INSTALL_HYDE
+
+if [ "$INSTALL_HYDE" = "yes" ]; then
+    echo ""
+    echo -e "${YELLOW}→${NC} Installing Hyde dependencies..."
+
+    # Install additional Hyde dependencies
+    sudo pacman -S --needed --noconfirm \
+        sddm \
+        qt5-svg \
+        qt5-quickcontrols2 \
+        qt5-graphicaleffects \
+        kvantum \
+        gtk-engine-murrine \
+        gnome-themes-extra \
+        curl \
+        wget \
+        jq \
+        gawk \
+        sed \
+        coreutils \
+        findutils \
+        python-requests \
+        python-pyquery \
+        python-click \
+        xdg-user-dirs \
+        parallel \
+        rsync \
+        wlogout
+
+    echo -e "${GREEN}✓${NC} Hyde dependencies installed"
+
+    echo ""
+    echo -e "${YELLOW}→${NC} Cloning Hyde repository..."
+    mkdir -p ~/Build
+    cd ~/Build
+
+    if [ -d "HyDE" ]; then
+        rm -rf HyDE
+    fi
+
+    git clone --depth 1 https://github.com/prasanthrangan/hyprdots HyDE
+    cd HyDE
+
+    echo -e "${GREEN}✓${NC} Hyde repository cloned"
+
+    echo ""
+    echo -e "${YELLOW}→${NC} Backing up existing configs..."
+    mkdir -p ~/.config-backup-$(date +%Y%m%d-%H%M%S)
+    if [ -d ~/.config/hypr ]; then
+        cp -r ~/.config/hypr ~/.config-backup-$(date +%Y%m%d-%H%M%S)/
+    fi
+    echo -e "${GREEN}✓${NC} Configs backed up"
+
+    echo ""
+    echo -e "${YELLOW}→${NC} Installing Hyde..."
+    echo -e "${BLUE}This may take a few minutes...${NC}"
+
+    # Run Hyde install script
+    chmod +x Scripts/install.sh
+    ./Scripts/install.sh
+
+    echo -e "${GREEN}✓${NC} Hyde installed successfully!"
+
+    # Return to home directory
+    cd ~
+else
+    echo ""
+    echo -e "${YELLOW}→${NC} Skipping Hyde installation"
+    echo -e "${BLUE}Will use default CustomOS configurations${NC}"
+fi
+
 # Enable services
 echo ""
 echo -e "${YELLOW}→${NC} Enabling system services..."
