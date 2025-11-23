@@ -15,6 +15,78 @@ BLUE="\033[0;34m"
 CYAN="\033[0;36m"
 NC="\033[0m"
 
+# Network Connection Helper Function
+connect_to_network() {
+    echo ""
+    echo -e "${CYAN}───────────────────────────────────────────────${NC}"
+    echo -e "${YELLOW}Network Connection Helper${NC}"
+    echo -e "${CYAN}───────────────────────────────────────────────${NC}"
+    echo ""
+    echo -e "Choose a connection method:"
+    echo -e "  ${GREEN}1${NC} - nmtui (Text-based UI - Recommended for WiFi)"
+    echo -e "  ${GREEN}2${NC} - nmcli (Command line - For Ethernet)"
+    echo -e "  ${GREEN}3${NC} - Manual commands guide"
+    echo -e "  ${GREEN}4${NC} - Skip (already connected)"
+    echo ""
+    read -p "Enter choice (1-4): " NET_CHOICE
+
+    case $NET_CHOICE in
+        1)
+            echo ""
+            echo -e "${YELLOW}→${NC} Launching NetworkManager TUI..."
+            echo -e "${BLUE}Use arrow keys to navigate, Enter to select${NC}"
+            echo -e "${BLUE}Select 'Activate a connection' to connect to WiFi${NC}"
+            echo ""
+            read -p "Press ENTER to open nmtui..."
+            sudo nmtui
+            echo ""
+            echo -e "${GREEN}✓${NC} Returned from nmtui"
+            ;;
+        2)
+            echo ""
+            echo -e "${YELLOW}→${NC} Starting NetworkManager service..."
+            sudo systemctl start NetworkManager
+            echo -e "${GREEN}✓${NC} NetworkManager started"
+            echo ""
+            echo -e "${YELLOW}→${NC} Checking for Ethernet connection..."
+            sleep 3
+            if ip link show | grep -q "state UP"; then
+                echo -e "${GREEN}✓${NC} Network interface is up"
+            else
+                echo -e "${YELLOW}⚠${NC} No active connection detected"
+                echo -e "Try option 1 (nmtui) for WiFi"
+            fi
+            ;;
+        3)
+            echo ""
+            echo -e "${YELLOW}Manual Connection Commands:${NC}"
+            echo ""
+            echo -e "${CYAN}For WiFi:${NC}"
+            echo -e "  ${GREEN}sudo systemctl start NetworkManager${NC}"
+            echo -e "  ${GREEN}nmcli device wifi list${NC}                    # List networks"
+            echo -e "  ${GREEN}nmcli device wifi connect 'SSID' password 'PASSWORD'${NC}"
+            echo ""
+            echo -e "${CYAN}For Ethernet:${NC}"
+            echo -e "  ${GREEN}sudo systemctl start NetworkManager${NC}"
+            echo -e "  ${GREEN}sudo dhcpcd${NC}                              # Get IP automatically"
+            echo ""
+            echo -e "${CYAN}Check connection:${NC}"
+            echo -e "  ${GREEN}ip addr${NC}                                   # Show IP addresses"
+            echo -e "  ${GREEN}ping archlinux.org${NC}                        # Test connectivity"
+            echo ""
+            read -p "Press ENTER when you've connected..."
+            ;;
+        4)
+            echo ""
+            echo -e "${YELLOW}→${NC} Skipping network setup"
+            ;;
+        *)
+            echo ""
+            echo -e "${RED}✗${NC} Invalid choice, skipping..."
+            ;;
+    esac
+}
+
 clear
 echo -e "${CYAN}"
 cat << 'EOF'
@@ -38,9 +110,26 @@ if ping -c 2 archlinux.org &>/dev/null; then
 else
     echo -e "${RED}✗${NC} No internet connection!"
     echo -e "${YELLOW}Warning:${NC} Internet required for package installation."
-    read -p "Continue anyway? (yes/no): " CONTINUE_OFFLINE
-    if [ "$CONTINUE_OFFLINE" != "yes" ]; then
-        exit 0
+    echo ""
+    read -p "Would you like to connect to network now? (yes/no): " WANT_CONNECT
+    if [ "$WANT_CONNECT" = "yes" ]; then
+        connect_to_network
+        echo ""
+        echo -e "${YELLOW}→${NC} Rechecking internet connectivity..."
+        if ping -c 2 archlinux.org &>/dev/null; then
+            echo -e "${GREEN}✓${NC} Internet connection detected"
+        else
+            echo -e "${RED}✗${NC} Still no internet connection!"
+            read -p "Continue anyway? (yes/no): " CONTINUE_OFFLINE
+            if [ "$CONTINUE_OFFLINE" != "yes" ]; then
+                exit 0
+            fi
+        fi
+    else
+        read -p "Continue without internet? (yes/no): " CONTINUE_OFFLINE
+        if [ "$CONTINUE_OFFLINE" != "yes" ]; then
+            exit 0
+        fi
     fi
 fi
 
@@ -153,6 +242,35 @@ echo ""
 read -p "Install Hyde? (yes/no): " INSTALL_HYDE
 
 if [ "$INSTALL_HYDE" = "yes" ]; then
+    # Verify internet connection for Hyde
+    echo ""
+    echo -e "${YELLOW}→${NC} Verifying internet for Hyde installation..."
+    if ! ping -c 2 archlinux.org &>/dev/null; then
+        echo -e "${RED}✗${NC} No internet connection!"
+        echo -e "${YELLOW}Hyde requires internet to download from GitHub${NC}"
+        echo ""
+        read -p "Would you like to connect to network now? (yes/no): " WANT_CONNECT_HYDE
+        if [ "$WANT_CONNECT_HYDE" = "yes" ]; then
+            connect_to_network
+            echo ""
+            echo -e "${YELLOW}→${NC} Rechecking internet connectivity..."
+            if ! ping -c 2 archlinux.org &>/dev/null; then
+                echo -e "${RED}✗${NC} Still no internet connection!"
+                echo -e "${YELLOW}Skipping Hyde installation${NC}"
+                INSTALL_HYDE="no"
+            else
+                echo -e "${GREEN}✓${NC} Internet connection detected"
+            fi
+        else
+            echo -e "${YELLOW}Skipping Hyde installation${NC}"
+            INSTALL_HYDE="no"
+        fi
+    else
+        echo -e "${GREEN}✓${NC} Internet connection confirmed"
+    fi
+fi
+
+if [ "$INSTALL_HYDE" = "yes" ]; then
     echo ""
     echo -e "${YELLOW}→${NC} Installing Hyde dependencies..."
 
@@ -205,7 +323,7 @@ if [ "$INSTALL_HYDE" = "yes" ]; then
     echo -e "${GREEN}✓${NC} Configs backed up"
 
     echo ""
-    echo -e "${YELLOW}→${NC} Installing Hyde..."
+    echo -e "${YELLOW}→${NC} Installing Hyde...${NC}"
     echo -e "${BLUE}This may take a few minutes...${NC}"
 
     # Run Hyde install script
@@ -213,6 +331,15 @@ if [ "$INSTALL_HYDE" = "yes" ]; then
     ./Scripts/install.sh
 
     echo -e "${GREEN}✓${NC} Hyde installed successfully!"
+    echo ""
+    echo -e "${CYAN}───────────────────────────────────────────────${NC}"
+    echo -e "${YELLOW}Hyde Update Instructions:${NC}"
+    echo -e "${CYAN}───────────────────────────────────────────────${NC}"
+    echo -e "To update Hyde in the future, run:"
+    echo -e "  ${GREEN}cd ~/Build/HyDE/Scripts${NC}"
+    echo -e "  ${GREEN}git pull origin master${NC}"
+    echo -e "  ${GREEN}./install.sh -r${NC}         # -r flag for reinstall"
+    echo -e "${CYAN}───────────────────────────────────────────────${NC}"
 
     # Return to home directory
     cd ~
