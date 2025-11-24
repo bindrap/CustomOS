@@ -125,6 +125,8 @@ OUTPUT_DIR="/workspace/cos_nov21/iso-output"
 
 echo "→ Cleaning old work..."
 rm -rf "$WORK_DIR"
+# Also clean any failed SquashFS temp files
+rm -rf /tmp/squashfs-* 2>/dev/null || true
 mkdir -p "$WORK_DIR"
 mkdir -p "$OUTPUT_DIR"
 
@@ -238,9 +240,15 @@ ISO_DATE=$(date +%Y.%m.%d)
 sed -i "s/iso_name=\"archlinux\"/iso_name=\"${ISO_NAME}\"/" profiledef.sh
 sed -i "s/iso_version=\"[0-9.]*\"/iso_version=\"${ISO_DATE}\"/" profiledef.sh
 
+# Use lighter compression to avoid out-of-memory errors in Docker
+# gzip uses much less memory than xz (default)
+echo "→ Setting compression to gzip (lower memory usage)..."
+sed -i 's/airootfs_image_type="squashfs"/airootfs_image_type="squashfs"\nairootfs_image_tool_options=("-comp" "gzip" "-Xcompression-level" "6" "-b" "1M")/' profiledef.sh
+
 echo "→ ISO customization applied:"
 echo "  Name: ${ISO_NAME}"
 echo "  Version: ${ISO_DATE}"
+echo "  Compression: gzip (memory-efficient)"
 
 # Build ISO
 echo ""
