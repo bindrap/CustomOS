@@ -96,20 +96,21 @@ fi
 
 clear
 
-# Display with Arch logo and system info side by side
+# Display with colorful PBOS branding and Arch logo
 echo ""
-echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║                                                                        ║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN}                 ${MAGENTA}██████╗ ██████╗  ██████╗ ███████╗                 ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN}      /\\        ${MAGENTA}██╔══██╗██╔══██╗██╔═══██╗██╔════╝                 ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN}     /  \\       ${MAGENTA}██████╔╝██████╔╝██║   ██║███████╗                 ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN}    /\\   \\      ${MAGENTA}██╔═══╝ ██╔══██╗██║   ██║╚════██║                 ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN}   /  __  \\     ${MAGENTA}██║     ██████╔╝╚██████╔╝███████║                 ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN}  / .'  '. \\    ${MAGENTA}╚═╝     ╚═════╝  ╚═════╝ ╚══════╝                 ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN} /.'      '.\\   ${WHITE}Parteek Bindra Operating System                  ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN}            \\   ${GRAY}Hyprland Edition • Arch Linux Based               ${CYAN}║${NC}"
-echo -e "${CYAN}║                                                                        ║${NC}"
-echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════╝${NC}"
+echo -e "${MAGENTA}╔══════════════════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${MAGENTA}║${NC}                                                                          ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}  ${CYAN}       /\\        ${MAGENTA}██████╗ ██████╗  ██████╗ ███████╗               ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}  ${CYAN}      /  \\       ${MAGENTA}██╔══██╗██╔══██╗██╔═══██╗██╔════╝               ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}  ${CYAN}     / /\\ \\      ${MAGENTA}██████╔╝██████╔╝██║   ██║███████╗               ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}  ${CYAN}    / /__\\ \\     ${MAGENTA}██╔═══╝ ██╔══██╗██║   ██║╚════██║               ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}  ${CYAN}   / .    . \\    ${MAGENTA}██║     ██████╔╝╚██████╔╝███████║               ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}  ${CYAN}  /.'      '.\\   ${MAGENTA}╚═╝     ╚═════╝  ╚═════╝ ╚══════╝               ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}                                                                          ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}          ${WHITE}✨ Parteek Bindra Operating System ✨${NC}                      ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}            ${CYAN}Hyprland Wayland Edition${NC} ${GRAY}• Arch Linux Based${NC}           ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}                                                                          ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}╚══════════════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
 # System Information
@@ -139,14 +140,14 @@ echo ""
 # Quick Start (minimal for post-install)
 if [ -f "/root/custom-setup/install-auto.sh" ] || [ -f "$HOME/custom-setup/install-auto.sh" ]; then
     # We're in ISO environment
-    echo -e "${GREEN}┌─────────────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${GREEN}│${NC}                          ${YELLOW}⚡ QUICK START ⚡${NC}                           ${GREEN}│${NC}"
-    echo -e "${GREEN}└─────────────────────────────────────────────────────────────────────┘${NC}"
+    echo -e "${MAGENTA}┌─────────────────────────────────────────────────────────────────────┐${NC}"
+    echo -e "${MAGENTA}│${NC}                          ${YELLOW}🚀 QUICK START 🚀${NC}                          ${MAGENTA}│${NC}"
+    echo -e "${MAGENTA}└─────────────────────────────────────────────────────────────────────┘${NC}"
     echo ""
-    echo -e "  ${CYAN}setup-wifi${NC}       - Connect to WiFi"
-    echo -e "  ${CYAN}partition-disk${NC}   - Prepare disk for dual boot"
-    echo -e "  ${CYAN}install-arch${NC}     - Install PBOS"
+    echo -e "  ${CYAN}setup-wifi${NC}       ${YELLOW}→${NC} ${WHITE}Connect to WiFi${NC}"
+    echo -e "  ${CYAN}partition-disk${NC}   ${YELLOW}→${NC} ${WHITE}Prepare disk for dual boot${NC}"
+    echo -e "  ${CYAN}install-arch${NC}     ${YELLOW}→${NC} ${WHITE}Install PBOS${NC}"
     echo ""
-    echo -e "  ${GRAY}Guides & docs: ~/custom-setup/${NC}"
+    echo -e "  ${GRAY}📚 Guides & docs: ~/custom-setup/${NC}"
     echo ""
 fi

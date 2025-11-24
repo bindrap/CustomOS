@@ -222,6 +222,13 @@ if [ -f "/workspace/cos_nov21/generate-motd.sh" ]; then
     echo "  ✓ generate-motd.sh copied"
 fi
 
+# Copy issue generator script (for login screen branding)
+if [ -f "/workspace/cos_nov21/generate-issue.sh" ]; then
+    cp /workspace/cos_nov21/generate-issue.sh airootfs/usr/local/bin/
+    chmod +x airootfs/usr/local/bin/generate-issue.sh
+    echo "  ✓ generate-issue.sh copied"
+fi
+
 # Copy wallpapers
 echo "→ Copying wallpapers..."
 mkdir -p airootfs/root/custom-setup/wallpapers
@@ -330,6 +337,32 @@ Docs: ~/custom-setup/
 
 EOFMOTD
 
+# Generate initial /etc/issue with PBOS branding
+echo "→ Generating /etc/issue with PBOS branding..."
+if [ -x airootfs/usr/local/bin/generate-issue.sh ]; then
+    # Run the script to generate /etc/issue
+    bash airootfs/usr/local/bin/generate-issue.sh || cat > airootfs/etc/issue << "EOFISSUE"
+
+╔══════════════════════════════════════════════════════════════════════════╗
+║                                                                          ║
+║         /\        ██████╗ ██████╗  ██████╗ ███████╗               ║
+║        /  \       ██╔══██╗██╔══██╗██╔═══██╗██╔════╝               ║
+║       / /\ \      ██████╔╝██████╔╝██║   ██║███████╗               ║
+║      / /__\ \     ██╔═══╝ ██╔══██╗██║   ██║╚════██║               ║
+║     / .    . \    ██║     ██████╔╝╚██████╔╝███████║               ║
+║    /.'      '.\   ╚═╝     ╚═════╝  ╚═════╝ ╚══════╝               ║
+║                                                                          ║
+║          ✨ Parteek Bindra Operating System ✨                      ║
+║            Hyprland Wayland Edition • Arch Linux Based           ║
+║                                                                          ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+EOFISSUE
+    echo "  ✓ /etc/issue generated"
+else
+    echo "  ⚠ generate-issue.sh not found, using static /etc/issue"
+fi
+
 # Set permissions
 cat >> profiledef.sh << "EOFPERMS"
 
@@ -339,6 +372,7 @@ file_permissions=(
   ["/usr/local/bin/setup-wifi"]="0:0:755"
   ["/usr/local/bin/partition-disk"]="0:0:755"
   ["/usr/local/bin/generate-motd.sh"]="0:0:755"
+  ["/usr/local/bin/generate-issue.sh"]="0:0:755"
   ["/root/custom-setup"]="0:0:755"
   ["/root/custom-setup/install-auto.sh"]="0:0:755"
   ["/root/custom-setup/install.sh"]="0:0:755"
@@ -349,6 +383,7 @@ file_permissions=(
   ["/root/.bash_profile"]="0:0:644"
   ["/root"]="0:0:750"
   ["/etc/motd"]="0:0:644"
+  ["/etc/issue"]="0:0:644"
 )
 EOFPERMS
 
