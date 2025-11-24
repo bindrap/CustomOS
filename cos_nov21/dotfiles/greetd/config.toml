@@ -1,10 +1,10 @@
-# Greetd configuration for CustomOS
-# Using tuigreet for reliable text-based login
+# Greetd configuration for PBOS
+# Using tuigreet with custom launch script for ASCII art
 
 [terminal]
 vt = 1
 
 [default_session]
-# Use tuigreet with Hyprland as default session
-command = "tuigreet --time --remember --remember-session --cmd Hyprland"
+# Use tuigreet with PBOS launcher (shows ASCII art before Hyprland)
+command = "tuigreet --time --remember --remember-session --cmd /usr/local/bin/launch-hyprland"
 user = "greeter"
