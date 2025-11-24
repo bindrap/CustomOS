@@ -176,6 +176,35 @@ else
     exit 1
 fi
 
+# Copy WiFi setup script
+if [ -f "/workspace/cos_nov21/wifi-setup.sh" ]; then
+    cp /workspace/cos_nov21/wifi-setup.sh airootfs/root/custom-setup/
+    chmod +x airootfs/root/custom-setup/wifi-setup.sh
+    echo "  ✓ wifi-setup.sh copied"
+else
+    echo "  ⚠ wifi-setup.sh not found (optional)"
+fi
+
+# Copy partition helper script
+if [ -f "/workspace/cos_nov21/partition-helper-safe.sh" ]; then
+    cp /workspace/cos_nov21/partition-helper-safe.sh airootfs/root/custom-setup/
+    chmod +x airootfs/root/custom-setup/partition-helper-safe.sh
+    echo "  ✓ partition-helper-safe.sh copied"
+else
+    echo "  ⚠ partition-helper-safe.sh not found (optional)"
+fi
+
+# Copy documentation
+echo "→ Copying documentation..."
+if [ -f "/workspace/cos_nov21/SAFE_DUAL_BOOT_SETUP.md" ]; then
+    cp /workspace/cos_nov21/SAFE_DUAL_BOOT_SETUP.md airootfs/root/custom-setup/
+    echo "  ✓ SAFE_DUAL_BOOT_SETUP.md copied"
+fi
+if [ -f "/workspace/cos_nov21/DUAL_BOOT_GUIDE.md" ]; then
+    cp /workspace/cos_nov21/DUAL_BOOT_GUIDE.md airootfs/root/custom-setup/
+    echo "  ✓ DUAL_BOOT_GUIDE.md copied"
+fi
+
 # Copy wallpapers
 echo "→ Copying wallpapers..."
 mkdir -p airootfs/root/custom-setup/wallpapers
@@ -187,9 +216,11 @@ else
     echo "  ⚠ No wallpapers directory"
 fi
 
-# Create install command
-echo "→ Creating install-arch command..."
+# Create convenience commands
+echo "→ Creating helper commands..."
 mkdir -p airootfs/usr/local/bin
+
+# Install command
 cat > airootfs/usr/local/bin/install-arch << "EOFCMD"
 #!/bin/bash
 cd /root/custom-setup || exit 1
@@ -202,6 +233,35 @@ else
 fi
 EOFCMD
 chmod +x airootfs/usr/local/bin/install-arch
+
+# WiFi setup command
+cat > airootfs/usr/local/bin/setup-wifi << "EOFCMD"
+#!/bin/bash
+cd /root/custom-setup || exit 1
+if [ -f wifi-setup.sh ]; then
+    chmod +x wifi-setup.sh
+    exec bash ./wifi-setup.sh
+else
+    echo "Error: wifi-setup.sh not found!"
+    echo "Try: iwctl --passphrase PASSWORD station wlan0 connect SSID"
+    exit 1
+fi
+EOFCMD
+chmod +x airootfs/usr/local/bin/setup-wifi
+
+# Partition helper command
+cat > airootfs/usr/local/bin/partition-disk << "EOFCMD"
+#!/bin/bash
+cd /root/custom-setup || exit 1
+if [ -f partition-helper-safe.sh ]; then
+    chmod +x partition-helper-safe.sh
+    exec bash ./partition-helper-safe.sh
+else
+    echo "Error: partition-helper-safe.sh not found!"
+    exit 1
+fi
+EOFCMD
+chmod +x airootfs/usr/local/bin/partition-disk
 
 # Add packages to live environment
 echo "→ Adding packages to live environment..."
@@ -221,17 +281,90 @@ ttf-liberation
 noto-fonts
 EOFPKG
 
+# Create welcome message
+echo "→ Creating welcome message..."
+mkdir -p airootfs/etc
+cat > airootfs/etc/motd << "EOFMOTD"
+
+╔═══════════════════════════════════════════════════════════════════╗
+║                                                                   ║
+║   ██████╗██╗   ██╗███████╗████████╗ ██████╗ ███╗   ███╗ ██████╗  ║
+║  ██╔════╝██║   ██║██╔════╝╚══██╔══╝██╔═══██╗████╗ ████║██╔═══██╗ ║
+║  ██║     ██║   ██║███████╗   ██║   ██║   ██║██╔████╔██║██║   ██║ ║
+║  ██║     ██║   ██║╚════██║   ██║   ██║   ██║██║╚██╔╝██║██║   ██║ ║
+║  ╚██████╗╚██████╔╝███████║   ██║   ╚██████╔╝██║ ╚═╝ ██║╚██████╔╝ ║
+║   ╚═════╝ ╚═════╝ ╚══════╝   ╚═╝    ╚═════╝ ╚═╝     ╚═╝ ╚═════╝  ║
+║                                                                   ║
+║                   Welcome to CustomOS Live ISO                    ║
+║                                                                   ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+Quick Start Guide
+─────────────────────────────────────────────────────────────────────
+
+📡 Connect to WiFi:
+   setup-wifi              - Interactive WiFi setup (both iwctl & nmcli)
+
+💾 Prepare Disk for Dual Boot:
+   partition-disk          - Safe partition helper (view/create only)
+
+🚀 Install CustomOS:
+   install-arch            - Start installation (full disk or dual boot)
+
+📚 Documentation:
+   cd ~/custom-setup       - All scripts and guides are here
+   ls                      - View available files
+
+─────────────────────────────────────────────────────────────────────
+
+Recommended Workflow:
+
+1. Connect WiFi (if needed):
+   $ setup-wifi
+
+2. Prepare disk (for dual boot):
+   $ partition-disk
+   (Use option 2 to create partition in free space)
+
+3. Install CustomOS:
+   $ install-arch
+   (Choose option 2 for dual boot)
+
+─────────────────────────────────────────────────────────────────────
+
+📂 All files are in: /root/custom-setup/
+
+  • wifi-setup.sh              - WiFi connection helper
+  • partition-helper-safe.sh   - Safe disk partitioning
+  • install-auto.sh            - Main installer
+  • SAFE_DUAL_BOOT_SETUP.md    - Complete dual boot guide
+
+─────────────────────────────────────────────────────────────────────
+
+Need Help?
+  • View guides: cd ~/custom-setup && ls *.md
+  • Manual WiFi: iwctl
+  • Check disks: lsblk
+  • View docs: cat ~/custom-setup/SAFE_DUAL_BOOT_SETUP.md | less
+
+EOFMOTD
+
 # Set permissions
 cat >> profiledef.sh << "EOFPERMS"
 
 # File permissions
 file_permissions=(
   ["/usr/local/bin/install-arch"]="0:0:755"
+  ["/usr/local/bin/setup-wifi"]="0:0:755"
+  ["/usr/local/bin/partition-disk"]="0:0:755"
   ["/root/custom-setup"]="0:0:755"
   ["/root/custom-setup/install-auto.sh"]="0:0:755"
   ["/root/custom-setup/install.sh"]="0:0:755"
   ["/root/custom-setup/post-install.sh"]="0:0:755"
+  ["/root/custom-setup/wifi-setup.sh"]="0:0:755"
+  ["/root/custom-setup/partition-helper-safe.sh"]="0:0:755"
   ["/root"]="0:0:750"
+  ["/etc/motd"]="0:0:644"
 )
 EOFPERMS
 
