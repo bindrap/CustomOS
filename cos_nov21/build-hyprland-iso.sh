@@ -205,6 +205,19 @@ if [ -f "/workspace/cos_nov21/DUAL_BOOT_GUIDE.md" ]; then
     echo "  ✓ DUAL_BOOT_GUIDE.md copied"
 fi
 
+# Copy stoic quotes for dynamic MOTD
+if [ -f "/workspace/cos_nov21/stoic-quotes.txt" ]; then
+    cp /workspace/cos_nov21/stoic-quotes.txt airootfs/root/custom-setup/
+    echo "  ✓ stoic-quotes.txt copied"
+fi
+
+# Copy MOTD generator script
+if [ -f "/workspace/cos_nov21/generate-motd.sh" ]; then
+    cp /workspace/cos_nov21/generate-motd.sh airootfs/usr/local/bin/
+    chmod +x airootfs/usr/local/bin/generate-motd.sh
+    echo "  ✓ generate-motd.sh copied"
+fi
+
 # Copy wallpapers
 echo "→ Copying wallpapers..."
 mkdir -p airootfs/root/custom-setup/wallpapers
@@ -281,8 +294,24 @@ ttf-liberation
 noto-fonts
 EOFPKG
 
-# Create welcome message with colors
-echo "→ Creating colorful welcome message..."
+# Configure dynamic MOTD on login
+echo "→ Configuring dynamic MOTD..."
+mkdir -p airootfs/root
+
+# Create .bash_profile for root that runs generate-motd.sh on login
+cat > airootfs/root/.bash_profile << "EOFPROFILE"
+# Run dynamic MOTD generator on login
+if [ -x /usr/local/bin/generate-motd.sh ]; then
+    /usr/local/bin/generate-motd.sh
+fi
+
+# Source .bashrc if it exists
+if [ -f ~/.bashrc ]; then
+    . ~/.bashrc
+fi
+EOFPROFILE
+
+# Create a minimal static motd as fallback
 mkdir -p airootfs/etc
 cat > airootfs/etc/motd << "EOFMOTD"
 [0;36m
@@ -394,12 +423,15 @@ file_permissions=(
   ["/usr/local/bin/install-arch"]="0:0:755"
   ["/usr/local/bin/setup-wifi"]="0:0:755"
   ["/usr/local/bin/partition-disk"]="0:0:755"
+  ["/usr/local/bin/generate-motd.sh"]="0:0:755"
   ["/root/custom-setup"]="0:0:755"
   ["/root/custom-setup/install-auto.sh"]="0:0:755"
   ["/root/custom-setup/install.sh"]="0:0:755"
   ["/root/custom-setup/post-install.sh"]="0:0:755"
   ["/root/custom-setup/wifi-setup.sh"]="0:0:755"
   ["/root/custom-setup/partition-helper-safe.sh"]="0:0:755"
+  ["/root/custom-setup/stoic-quotes.txt"]="0:0:644"
+  ["/root/.bash_profile"]="0:0:644"
   ["/root"]="0:0:750"
   ["/etc/motd"]="0:0:644"
 )
@@ -469,7 +501,8 @@ if [ -f "$ISO_FILE" ]; then
     echo "  ✓ WiFi and partition helper scripts"
     echo "  ✓ Dual boot safe installation"
     echo "  ✓ Complete Hyprland configs"
-    echo "  ✓ Custom PBOS welcome message"
+    echo "  ✓ Dynamic MOTD with colorful ASCII art"
+    echo "  ✓ Random stoic philosophy quotes on each login"
     echo ""
     echo "Test with QEMU:"
     echo "  ./test-iso-qemu-install.sh"
