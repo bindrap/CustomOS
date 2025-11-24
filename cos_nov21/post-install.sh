@@ -192,7 +192,12 @@ if [ -d "$SCRIPT_DIR/dotfiles/greetd" ]; then
         sudo cp "$SCRIPT_DIR/dotfiles/greetd/launch-hyprland.sh" /usr/local/bin/launch-hyprland
         sudo chmod +x /usr/local/bin/launch-hyprland
     fi
-    echo -e "${GREEN}✓${NC} Login screen configured (tuigreet with ASCII art)"
+    # Install animated intro script
+    if [ -f "$SCRIPT_DIR/dotfiles/greetd/animated-intro.sh" ]; then
+        sudo cp "$SCRIPT_DIR/dotfiles/greetd/animated-intro.sh" /usr/local/bin/animated-intro
+        sudo chmod +x /usr/local/bin/animated-intro
+    fi
+    echo -e "${GREEN}✓${NC} Login screen configured (tuigreet with animated ASCII art)"
 else
     echo -e "${YELLOW}⚠${NC} Greetd config not found, skipping"
 fi
