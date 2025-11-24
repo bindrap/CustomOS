@@ -445,7 +445,7 @@ sed -i "s/iso_version=\"[0-9.]*\"/iso_version=\"${ISO_DATE}\"/" profiledef.sh
 # Use lighter compression to avoid out-of-memory errors in Docker
 # gzip uses much less memory than xz (default)
 echo "→ Setting compression to gzip (lower memory usage)..."
-sed -i 's/airootfs_image_type="squashfs"/airootfs_image_type="squashfs"\nairootfs_image_tool_options=("-comp" "gzip" "-Xcompression-level" "6" "-b" "1M")/' profiledef.sh
+sed -i 's/airootfs_image_type="squashfs"/airootfs_image_type="squashfs"\nairootfs_image_tool_options=\\("-comp" "gzip" "-Xcompression-level" "6" "-b" "1M"\\)/' profiledef.sh
 
 echo "→ ISO customization applied:"
 echo "  Name: ${ISO_NAME}"
