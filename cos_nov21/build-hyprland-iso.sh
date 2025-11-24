@@ -311,108 +311,19 @@ if [ -f ~/.bashrc ]; then
 fi
 EOFPROFILE
 
-# Create a minimal static motd as fallback
+# Create a minimal static motd as fallback (dynamic one is better)
 mkdir -p airootfs/etc
 cat > airootfs/etc/motd << "EOFMOTD"
-[0;36m
-╔═══════════════════════════════════════════════════════════════════════╗
-║                                                                       ║
-║  [1;35m         ██████╗ ██████╗  ██████╗ ███████╗                           [0;36m║
-║  [1;35m        ██╔══██╗██╔══██╗██╔═══██╗██╔════╝                           [0;36m║
-║  [1;35m        ██████╔╝██████╔╝██║   ██║███████╗                           [0;36m║
-║  [1;35m        ██╔═══╝ ██╔══██╗██║   ██║╚════██║                           [0;36m║
-║  [1;35m        ██║     ██████╔╝╚██████╔╝███████║                           [0;36m║
-║  [1;35m        ╚═╝     ╚═════╝  ╚═════╝ ╚══════╝                           [0;36m║
-║                                                                       ║
-║         [1;33m┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓                 [0;36m║
-║         [1;33m┃  Parteek Bindra Operating System  ┃                 [0;36m║
-║         [1;33m┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛                 [0;36m║
-║                                                                       ║
-║      [1;32m🚀 Hyprland Edition • Arch Linux Based 🚀                    [0;36m║
-║                                                                       ║
-║  [1;34m         __               [1;33m    ____         [1;32m      ╱▔▔▔▔▔╲               [0;36m║
-║  [1;34m       _// \\__           [1;33m   /    \\        [1;32m     ▏      ▕               [0;36m║
-║  [1;34m      /       \\          [1;33m  │  o o │       [1;32m     ▏ ●  ● ▕               [0;36m║
-║  [1;34m    _/  ┌───┐  \\_        [1;33m  │  >◡< │       [1;32m     ▏  ▼▼  ▕               [0;36m║
-║  [1;34m   ╱════╧═══╧════╲       [1;33m   \\_____/        [1;32m     ╲______╱               [0;36m║
-║  [1;34m  Skateboard Ready!      [1;33m   Planet!        [1;32m      Dino!                 [0;36m║
-║                                                                       ║
-╚═══════════════════════════════════════════════════════════════════════╝
 
-[1;35m    ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-[1;35m    ┃[1;33m                     ⚡ QUICK START GUIDE ⚡                     [1;35m┃
-[1;35m    ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-[0m
+Welcome to PBOS (Parteek Bindra Operating System)
 
-[1;36m    📡 CONNECT TO WiFi[0m
-[1;32m    ╰─➤ setup-wifi[0m
-        • Auto-detects ISO or installed environment
-        • Supports both iwctl (ISO) and nmcli (installed)
-        • Interactive menu with network list
+Quick Start:
+  setup-wifi       - Connect to WiFi
+  partition-disk   - Prepare disk for dual boot
+  install-arch     - Install PBOS
 
-[0;33m    ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄[0m
+Docs: ~/custom-setup/
 
-[1;35m    💾 PREPARE DISK (For Dual Boot)[0m
-[1;32m    ╰─➤ partition-disk[0m
-        • Safe partition creation in free space
-        • NO automated shrinking (use Windows Disk Management first)
-        • View disk layout and free space
-        • Create PBOS partition safely
-
-[0;33m    ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄[0m
-
-[1;33m    🚀 INSTALL PBOS[0m
-[1;32m    ╰─➤ install-arch[0m
-        • Full disk installation (erases entire disk)
-        • Dual boot installation (preserves other OS)
-        • Auto-unmounts partitions
-        • Supports both UEFI and BIOS
-
-[1;34m    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-
-[1;32m    📋 RECOMMENDED WORKFLOW[0m
-
-[1;36m        Step 1: Connect to WiFi (if needed)[0m
-[1;33m                $ setup-wifi[0m
-
-[1;36m        Step 2: Prepare Disk (dual boot only)[0m
-[1;33m                $ partition-disk[0m
-                → Select option 2 (Create partition in free space)
-
-[1;36m        Step 3: Install PBOS[0m
-[1;33m                $ install-arch[0m
-                → Choose option 2 for dual boot
-
-[1;34m    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-
-[1;35m    📂 FILES & DOCUMENTATION[0m
-
-[1;33m        Location:[0m /root/custom-setup/
-
-[1;32m        Scripts:[0m
-          • wifi-setup.sh              - WiFi helper
-          • partition-helper-safe.sh   - Partition helper
-          • install-auto.sh            - Main installer
-
-[1;32m        Guides:[0m
-          • SAFE_DUAL_BOOT_SETUP.md    - Complete dual boot guide
-          • DUAL_BOOT_GUIDE.md         - Alternative guide
-
-[1;32m        Configs:[0m
-          • dotfiles/                  - Hyprland configs
-          • wallpapers/                - Desktop wallpapers
-
-[1;34m    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-
-[1;31m    🆘 NEED HELP?[0m
-
-[1;33m        View guides:[0m    cd ~/custom-setup && ls *.md
-[1;33m        Read guide:[0m     cat ~/custom-setup/SAFE_DUAL_BOOT_SETUP.md | less
-[1;33m        Manual WiFi:[0m    iwctl
-[1;33m        Check disks:[0m    lsblk
-[1;33m        Disk info:[0m      fdisk -l
-
-[0m
 EOFMOTD
 
 # Set permissions
