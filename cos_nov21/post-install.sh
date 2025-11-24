@@ -98,6 +98,8 @@ sudo pacman -S --needed --noconfirm \
     imv \
     zathura \
     zathura-pdf-mupdf \
+    libnotify \
+    papirus-icon-theme \
     ttf-dejavu \
     ttf-liberation \
     noto-fonts \

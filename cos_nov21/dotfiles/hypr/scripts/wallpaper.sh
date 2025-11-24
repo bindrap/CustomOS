@@ -1,0 +1,37 @@
+#!/bin/bash
+# Wallpaper fallback script for PBOS
+# Priority: kissArch.jpg > other wallpapers > slime green
+
+WALLPAPER_DIRS=(
+    "$HOME/Pictures/wallpapers"
+    "$HOME/Pictures"
+    "/usr/share/backgrounds"
+)
+
+# Color fallback (slime green)
+FALLBACK_COLOR="#39FF14"
+
+# Check for kissArch.jpg first
+for dir in "${WALLPAPER_DIRS[@]}"; do
+    if [ -f "$dir/kissArch.jpg" ]; then
+        echo "Found kissArch.jpg at $dir/kissArch.jpg"
+        swaybg -i "$dir/kissArch.jpg" -m fill &
+        exit 0
+    fi
+done
+
+# Try to find any wallpaper
+for dir in "${WALLPAPER_DIRS[@]}"; do
+    if [ -d "$dir" ]; then
+        WALLPAPER=$(find "$dir" -maxdepth 1 -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.webp" \) 2>/dev/null | head -1)
+        if [ -n "$WALLPAPER" ]; then
+            echo "Found wallpaper: $WALLPAPER"
+            swaybg -i "$WALLPAPER" -m fill &
+            exit 0
+        fi
+    fi
+done
+
+# Final fallback: slime green
+echo "No wallpaper found, using slime green fallback"
+swaybg -c "$FALLBACK_COLOR" &

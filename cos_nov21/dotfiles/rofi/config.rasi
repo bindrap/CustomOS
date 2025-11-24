@@ -1,0 +1,131 @@
+/*******************************************************************************
+ * PBOS ROFI CONFIG - Hyde Inspired
+ * Modern, sleek application launcher
+ *******************************************************************************/
+
+configuration {
+    modi: "drun,run,filebrowser,window";
+    show-icons: true;
+    icon-theme: "Papirus-Dark";
+    display-drun: "  Apps";
+    display-run: "  Run";
+    display-filebrowser: "  Files";
+    display-window: "  Windows";
+    drun-display-format: "{name}";
+    window-format: "{w} · {c} · {t}";
+    font: "JetBrainsMono Nerd Font 11";
+    disable-history: false;
+}
+
+@theme "/dev/null"
+
+* {
+    bg: #1e1e2edd;
+    bg-alt: #313244dd;
+    bg-selected: #45475a;
+
+    fg: #cdd6f4;
+    fg-alt: #7f849c;
+
+    border: #89b4fa;
+
+    background-color: transparent;
+    text-color: @fg;
+
+    margin: 0;
+    padding: 0;
+    spacing: 0;
+}
+
+window {
+    location: center;
+    width: 640;
+    border-radius: 16;
+    border: 2;
+    border-color: @border;
+    background-color: @bg;
+}
+
+mainbox {
+    padding: 12;
+}
+
+inputbar {
+    background-color: @bg-alt;
+    border-color: @border;
+    border: 2;
+    border-radius: 12;
+    padding: 12px 16px;
+    spacing: 12px;
+    children: [ prompt, entry ];
+}
+
+prompt {
+    text-color: @border;
+}
+
+entry {
+    placeholder: "Search...";
+    placeholder-color: @fg-alt;
+}
+
+message {
+    margin: 12px 0 0;
+    border-radius: 12;
+    border-color: @border;
+    background-color: @bg-alt;
+}
+
+textbox {
+    padding: 8px 12px;
+}
+
+listview {
+    background-color: transparent;
+    margin: 12px 0 0;
+    lines: 8;
+    columns: 1;
+    fixed-height: false;
+    dynamic: true;
+}
+
+element {
+    padding: 10px 12px;
+    spacing: 12px;
+    border-radius: 8;
+}
+
+element normal normal {
+    text-color: @fg;
+}
+
+element normal urgent {
+    text-color: #f38ba8;
+}
+
+element normal active {
+    text-color: @border;
+}
+
+element selected {
+    background-color: @bg-selected;
+}
+
+element selected normal, element selected active {
+    text-color: @border;
+}
+
+element selected urgent {
+    background-color: #f38ba8;
+    text-color: @bg;
+}
+
+element-icon {
+    size: 1.2em;
+    vertical-align: 0.5;
+}
+
+element-text {
+    text-color: inherit;
+    vertical-align: 0.5;
+}
