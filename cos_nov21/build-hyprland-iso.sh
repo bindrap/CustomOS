@@ -204,6 +204,10 @@ if [ -f "/workspace/cos_nov21/DUAL_BOOT_GUIDE.md" ]; then
     cp /workspace/cos_nov21/DUAL_BOOT_GUIDE.md airootfs/root/custom-setup/
     echo "  ✓ DUAL_BOOT_GUIDE.md copied"
 fi
+if [ -f "/workspace/cos_nov21/SWAP_SETUP_GUIDE.md" ]; then
+    cp /workspace/cos_nov21/SWAP_SETUP_GUIDE.md airootfs/root/custom-setup/
+    echo "  ✓ SWAP_SETUP_GUIDE.md copied"
+fi
 
 # Copy stoic quotes for dynamic MOTD
 if [ -f "/workspace/cos_nov21/stoic-quotes.txt" ]; then
