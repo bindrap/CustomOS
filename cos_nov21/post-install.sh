@@ -98,6 +98,8 @@ sudo pacman -S --needed --noconfirm \
     imv \
     zathura \
     zathura-pdf-mupdf \
+    libnotify \
+    papirus-icon-theme \
     ttf-dejavu \
     ttf-liberation \
     noto-fonts \
@@ -125,7 +127,11 @@ sudo pacman -S --needed --noconfirm \
     fzf \
     bluez \
     bluez-utils \
-    blueman
+    blueman \
+    tailscale \
+    steam \
+    prismlauncher \
+    jre-openjdk
 
 echo -e "${GREEN}✓${NC} All packages installed!"
 
@@ -141,6 +147,7 @@ echo -e "${YELLOW}→${NC} Enabling system services..."
 sudo systemctl enable NetworkManager
 sudo systemctl enable bluetooth
 sudo systemctl enable greetd
+sudo systemctl enable tailscaled
 echo -e "${GREEN}✓${NC} Services enabled"
 
 # Create config directories
@@ -180,7 +187,17 @@ echo -e "${YELLOW}→${NC} Setting up login screen..."
 if [ -d "$SCRIPT_DIR/dotfiles/greetd" ]; then
     sudo mkdir -p /etc/greetd
     sudo cp "$SCRIPT_DIR/dotfiles/greetd/config.toml" /etc/greetd/config.toml
-    echo -e "${GREEN}✓${NC} Login screen configured (tuigreet)"
+    # Install launch script that shows ASCII art before Hyprland
+    if [ -f "$SCRIPT_DIR/dotfiles/greetd/launch-hyprland.sh" ]; then
+        sudo cp "$SCRIPT_DIR/dotfiles/greetd/launch-hyprland.sh" /usr/local/bin/launch-hyprland
+        sudo chmod +x /usr/local/bin/launch-hyprland
+    fi
+    # Install animated intro script
+    if [ -f "$SCRIPT_DIR/dotfiles/greetd/animated-intro.sh" ]; then
+        sudo cp "$SCRIPT_DIR/dotfiles/greetd/animated-intro.sh" /usr/local/bin/animated-intro
+        sudo chmod +x /usr/local/bin/animated-intro
+    fi
+    echo -e "${GREEN}✓${NC} Login screen configured (tuigreet with animated ASCII art)"
 else
     echo -e "${YELLOW}⚠${NC} Greetd config not found, skipping"
 fi

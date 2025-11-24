@@ -16,22 +16,22 @@ NC='\033[0m'
 echo -e "${PURPLE}"
 cat << "EOF"
 ===================================================
-  CustomOS Nov21 ISO Builder
-  Clean & Simple
+  PBOS (Parteek Bindra Operating System)
+  Hyprland Edition ISO Builder
 ===================================================
 EOF
 echo -e "${NC}"
 
-ISO_NAME="customos-nov21"
+ISO_NAME="pbos-hyprland"
 ISO_VERSION=$(date +%Y%m%d-%H%M)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 OUTPUT_DIR="$SCRIPT_DIR/iso-output"
-CACHE_DIR="$HOME/.cache/archiso-customos"
+CACHE_DIR="$HOME/.cache/archiso-pbos"
 IMAGE_NAME="archiso-builder"
 
 echo ""
-echo -e "${YELLOW}CustomOS Nov21 - Simplified Hyprland ISO${NC}"
+echo -e "${YELLOW}PBOS (Parteek Bindra Operating System) - Hyprland Edition${NC}"
 echo "Output: $OUTPUT_DIR/${ISO_NAME}-${ISO_VERSION}.iso"
 echo ""
 echo "Includes:"
@@ -125,6 +125,8 @@ OUTPUT_DIR="/workspace/cos_nov21/iso-output"
 
 echo "→ Cleaning old work..."
 rm -rf "$WORK_DIR"
+# Also clean any failed SquashFS temp files
+rm -rf /tmp/squashfs-* 2>/dev/null || true
 mkdir -p "$WORK_DIR"
 mkdir -p "$OUTPUT_DIR"
 
@@ -174,6 +176,52 @@ else
     exit 1
 fi
 
+# Copy WiFi setup script
+if [ -f "/workspace/cos_nov21/wifi-setup.sh" ]; then
+    cp /workspace/cos_nov21/wifi-setup.sh airootfs/root/custom-setup/
+    chmod +x airootfs/root/custom-setup/wifi-setup.sh
+    echo "  ✓ wifi-setup.sh copied"
+else
+    echo "  ⚠ wifi-setup.sh not found (optional)"
+fi
+
+# Copy partition helper script
+if [ -f "/workspace/cos_nov21/partition-helper-safe.sh" ]; then
+    cp /workspace/cos_nov21/partition-helper-safe.sh airootfs/root/custom-setup/
+    chmod +x airootfs/root/custom-setup/partition-helper-safe.sh
+    echo "  ✓ partition-helper-safe.sh copied"
+else
+    echo "  ⚠ partition-helper-safe.sh not found (optional)"
+fi
+
+# Copy documentation
+echo "→ Copying documentation..."
+if [ -f "/workspace/cos_nov21/SAFE_DUAL_BOOT_SETUP.md" ]; then
+    cp /workspace/cos_nov21/SAFE_DUAL_BOOT_SETUP.md airootfs/root/custom-setup/
+    echo "  ✓ SAFE_DUAL_BOOT_SETUP.md copied"
+fi
+if [ -f "/workspace/cos_nov21/DUAL_BOOT_GUIDE.md" ]; then
+    cp /workspace/cos_nov21/DUAL_BOOT_GUIDE.md airootfs/root/custom-setup/
+    echo "  ✓ DUAL_BOOT_GUIDE.md copied"
+fi
+if [ -f "/workspace/cos_nov21/SWAP_SETUP_GUIDE.md" ]; then
+    cp /workspace/cos_nov21/SWAP_SETUP_GUIDE.md airootfs/root/custom-setup/
+    echo "  ✓ SWAP_SETUP_GUIDE.md copied"
+fi
+
+# Copy stoic quotes for dynamic MOTD
+if [ -f "/workspace/cos_nov21/stoic-quotes.txt" ]; then
+    cp /workspace/cos_nov21/stoic-quotes.txt airootfs/root/custom-setup/
+    echo "  ✓ stoic-quotes.txt copied"
+fi
+
+# Copy MOTD generator script
+if [ -f "/workspace/cos_nov21/generate-motd.sh" ]; then
+    cp /workspace/cos_nov21/generate-motd.sh airootfs/usr/local/bin/
+    chmod +x airootfs/usr/local/bin/generate-motd.sh
+    echo "  ✓ generate-motd.sh copied"
+fi
+
 # Copy wallpapers
 echo "→ Copying wallpapers..."
 mkdir -p airootfs/root/custom-setup/wallpapers
@@ -185,9 +233,11 @@ else
     echo "  ⚠ No wallpapers directory"
 fi
 
-# Create install command
-echo "→ Creating install-arch command..."
+# Create convenience commands
+echo "→ Creating helper commands..."
 mkdir -p airootfs/usr/local/bin
+
+# Install command
 cat > airootfs/usr/local/bin/install-arch << "EOFCMD"
 #!/bin/bash
 cd /root/custom-setup || exit 1
@@ -200,6 +250,35 @@ else
 fi
 EOFCMD
 chmod +x airootfs/usr/local/bin/install-arch
+
+# WiFi setup command
+cat > airootfs/usr/local/bin/setup-wifi << "EOFCMD"
+#!/bin/bash
+cd /root/custom-setup || exit 1
+if [ -f wifi-setup.sh ]; then
+    chmod +x wifi-setup.sh
+    exec bash ./wifi-setup.sh
+else
+    echo "Error: wifi-setup.sh not found!"
+    echo "Try: iwctl --passphrase PASSWORD station wlan0 connect SSID"
+    exit 1
+fi
+EOFCMD
+chmod +x airootfs/usr/local/bin/setup-wifi
+
+# Partition helper command
+cat > airootfs/usr/local/bin/partition-disk << "EOFCMD"
+#!/bin/bash
+cd /root/custom-setup || exit 1
+if [ -f partition-helper-safe.sh ]; then
+    chmod +x partition-helper-safe.sh
+    exec bash ./partition-helper-safe.sh
+else
+    echo "Error: partition-helper-safe.sh not found!"
+    exit 1
+fi
+EOFCMD
+chmod +x airootfs/usr/local/bin/partition-disk
 
 # Add packages to live environment
 echo "→ Adding packages to live environment..."
@@ -219,17 +298,57 @@ ttf-liberation
 noto-fonts
 EOFPKG
 
+# Configure dynamic MOTD on login
+echo "→ Configuring dynamic MOTD..."
+mkdir -p airootfs/root
+
+# Create .bash_profile for root that runs generate-motd.sh on login
+cat > airootfs/root/.bash_profile << "EOFPROFILE"
+# Run dynamic MOTD generator on login
+if [ -x /usr/local/bin/generate-motd.sh ]; then
+    /usr/local/bin/generate-motd.sh
+fi
+
+# Source .bashrc if it exists
+if [ -f ~/.bashrc ]; then
+    . ~/.bashrc
+fi
+EOFPROFILE
+
+# Create a minimal static motd as fallback (dynamic one is better)
+mkdir -p airootfs/etc
+cat > airootfs/etc/motd << "EOFMOTD"
+
+Welcome to PBOS (Parteek Bindra Operating System)
+
+Quick Start:
+  setup-wifi       - Connect to WiFi
+  partition-disk   - Prepare disk for dual boot
+  install-arch     - Install PBOS
+
+Docs: ~/custom-setup/
+
+EOFMOTD
+
 # Set permissions
 cat >> profiledef.sh << "EOFPERMS"
 
 # File permissions
 file_permissions=(
   ["/usr/local/bin/install-arch"]="0:0:755"
+  ["/usr/local/bin/setup-wifi"]="0:0:755"
+  ["/usr/local/bin/partition-disk"]="0:0:755"
+  ["/usr/local/bin/generate-motd.sh"]="0:0:755"
   ["/root/custom-setup"]="0:0:755"
   ["/root/custom-setup/install-auto.sh"]="0:0:755"
   ["/root/custom-setup/install.sh"]="0:0:755"
   ["/root/custom-setup/post-install.sh"]="0:0:755"
+  ["/root/custom-setup/wifi-setup.sh"]="0:0:755"
+  ["/root/custom-setup/partition-helper-safe.sh"]="0:0:755"
+  ["/root/custom-setup/stoic-quotes.txt"]="0:0:644"
+  ["/root/.bash_profile"]="0:0:644"
   ["/root"]="0:0:750"
+  ["/etc/motd"]="0:0:644"
 )
 EOFPERMS
 
@@ -238,14 +357,21 @@ ISO_DATE=$(date +%Y.%m.%d)
 sed -i "s/iso_name=\"archlinux\"/iso_name=\"${ISO_NAME}\"/" profiledef.sh
 sed -i "s/iso_version=\"[0-9.]*\"/iso_version=\"${ISO_DATE}\"/" profiledef.sh
 
+# Use lighter compression to avoid out-of-memory errors in Docker
+# gzip uses much less memory than xz (default)
+echo "→ Setting compression to gzip (lower memory usage)..."
+# Add compression options after the airootfs_image_type line
+sed -i "/airootfs_image_type=\"squashfs\"/a airootfs_image_tool_options=(\"-comp\" \"gzip\" \"-Xcompression-level\" \"6\" \"-b\" \"1M\")" profiledef.sh
+
 echo "→ ISO customization applied:"
 echo "  Name: ${ISO_NAME}"
 echo "  Version: ${ISO_DATE}"
+echo "  Compression: gzip (memory-efficient)"
 
 # Build ISO
 echo ""
 echo "=================================================="
-echo "  Building CustomOS Nov21 ISO - 10-15 minutes"
+echo "  Building PBOS Hyprland ISO - 10-15 minutes"
 echo "=================================================="
 echo ""
 
@@ -277,7 +403,7 @@ if [ -f "$ISO_FILE" ]; then
 
     echo ""
     echo -e "${GREEN}====================================================${NC}"
-    echo -e "${GREEN}  CustomOS Nov21 ISO Build Complete!${NC}"
+    echo -e "${GREEN}  PBOS Hyprland ISO Build Complete!${NC}"
     echo -e "${GREEN}====================================================${NC}"
     echo ""
     echo -e "${GREEN}✓${NC} ISO created successfully!"
@@ -287,11 +413,12 @@ if [ -f "$ISO_FILE" ]; then
     echo "  Size: $ISO_SIZE"
     echo ""
     echo "Features:"
-    echo "  ✓ ALT key bindings (ALT+T for terminal)"
-    echo "  ✓ All configs in cos_nov21/dotfiles/"
-    echo "  ✓ Separate installation scripts for easy editing"
-    echo "  ✓ Complete font stack"
-    echo "  ✓ Waybar, Mako, Wofi pre-configured"
+    echo "  ✓ Hyprland with ALT key bindings"
+    echo "  ✓ WiFi and partition helper scripts"
+    echo "  ✓ Dual boot safe installation"
+    echo "  ✓ Complete Hyprland configs"
+    echo "  ✓ Dynamic MOTD with colorful ASCII art"
+    echo "  ✓ Random stoic philosophy quotes on each login"
     echo ""
     echo "Test with QEMU:"
     echo "  ./test-iso-qemu-install.sh"

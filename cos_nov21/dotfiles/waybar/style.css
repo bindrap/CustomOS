@@ -1,120 +1,175 @@
-/* macOS-Inspired Minimalist Waybar Style */
-@import "colors.css";
+/* PBOS Waybar Style - Hyde Inspired */
 
 * {
-    font-family: "SF Pro Display", "JetBrainsMono Nerd Font", "Font Awesome 6 Free", sans-serif;
-    font-size: 12px;
-    font-weight: 500;
+    font-family: "JetBrainsMono Nerd Font", "Font Awesome 6 Free";
+    font-size: 13px;
+    font-weight: bold;
     min-height: 0;
 }
 
 window#waybar {
-    background: rgba(0, 0, 0, 0);
-    color: @text;
-    border: none;
+    background: transparent;
 }
 
-window#waybar.empty {
-    background: rgba(0, 0, 0, 0);
+#waybar {
+    background-color: rgba(30, 30, 46, 0.9);
+    border-radius: 16px;
+    color: #cdd6f4;
 }
 
-/* Left Section - Workspaces and Window */
-#workspaces,
-#window {
-    background: rgba(30, 30, 46, 0.85);
-    margin: 4px 0px 4px 6px;
-    padding: 2px 10px;
-    border-radius: 10px;
-    border: 1px solid rgba(205, 214, 244, 0.1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+/* Launcher */
+#custom-launcher {
+    background-color: #89b4fa;
+    color: #1e1e2e;
+    border-radius: 12px;
+    padding: 0 15px;
+    margin: 4px 4px 4px 8px;
+    font-size: 16px;
+}
+
+#custom-launcher:hover {
+    background-color: #74c7ec;
 }
 
 /* Workspaces */
 #workspaces {
-    padding: 2px 6px;
+    background-color: #313244;
+    border-radius: 12px;
+    margin: 4px;
+    padding: 0 4px;
 }
 
 #workspaces button {
-    padding: 1px 6px;
-    color: @overlay1;
-    background: transparent;
-    border: none;
+    color: #7f849c;
     border-radius: 8px;
-    margin: 0 1px;
-    transition: all 0.2s ease;
+    padding: 0 10px;
+    margin: 2px;
+    transition: all 0.3s ease;
 }
 
 #workspaces button.active {
-    color: @text;
-    background: rgba(49, 50, 68, 0.8);
+    color: #89b4fa;
+    background-color: #45475a;
 }
 
 #workspaces button.urgent {
-    color: @red;
-    background: rgba(243, 139, 168, 0.2);
+    color: #f38ba8;
+    background-color: #45475a;
 }
 
 #workspaces button:hover {
-    background: rgba(49, 50, 68, 0.5);
-    color: @text;
+    color: #cdd6f4;
+    background-color: #45475a;
 }
 
-/* Window Title */
+/* Window title */
 #window {
-    color: @text;
-    font-weight: 500;
-    padding: 2px 12px;
-    margin-left: 6px;
+    background-color: #313244;
+    border-radius: 12px;
+    padding: 0 15px;
+    margin: 4px;
+    color: #cdd6f4;
 }
 
-/* Center Section - Clock */
+/* Clock */
 #clock {
-    background: rgba(30, 30, 46, 0.85);
-    padding: 2px 16px;
-    margin: 4px 6px;
-    color: @text;
-    font-weight: 600;
-    border-radius: 10px;
-    border: 1px solid rgba(205, 214, 244, 0.1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-    letter-spacing: 0.5px;
+    background-color: #313244;
+    border-radius: 12px;
+    padding: 0 15px;
+    margin: 4px;
+    color: #f9e2af;
 }
 
-/* Right Section - System Indicators */
-#network,
-#pulseaudio,
-#tray {
-    background: rgba(30, 30, 46, 0.85);
-    padding: 2px 8px;
+/* System modules */
+#cpu,
+#memory,
+#temperature {
+    background-color: #313244;
+    border-radius: 12px;
+    padding: 0 12px;
     margin: 4px 2px;
-    border-radius: 10px;
-    border: 1px solid rgba(205, 214, 244, 0.1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-    transition: all 0.2s ease;
 }
 
-/* Individual Module Colors */
+#cpu {
+    color: #89b4fa;
+}
+
+#memory {
+    color: #a6e3a1;
+}
+
+#temperature {
+    color: #f9e2af;
+}
+
+#temperature.critical {
+    color: #f38ba8;
+    animation: blink 0.5s linear infinite alternate;
+}
+
+/* Backlight */
+#backlight {
+    background-color: #313244;
+    border-radius: 12px;
+    padding: 0 12px;
+    margin: 4px 2px;
+    color: #f9e2af;
+}
+
+/* Battery */
+#battery {
+    background-color: #313244;
+    border-radius: 12px;
+    padding: 0 12px;
+    margin: 4px 2px;
+    color: #a6e3a1;
+}
+
+#battery.charging {
+    color: #89b4fa;
+}
+
+#battery.warning:not(.charging) {
+    color: #f9e2af;
+}
+
+#battery.critical:not(.charging) {
+    color: #f38ba8;
+    animation: blink 0.5s linear infinite alternate;
+}
+
+/* Network */
 #network {
-    color: @green;
+    background-color: #313244;
+    border-radius: 12px;
+    padding: 0 12px;
+    margin: 4px 2px;
+    color: #89b4fa;
 }
 
 #network.disconnected {
-    color: @overlay0;
-    opacity: 0.6;
+    color: #f38ba8;
 }
 
+/* Pulseaudio */
 #pulseaudio {
-    color: @mauve;
+    background-color: #313244;
+    border-radius: 12px;
+    padding: 0 12px;
+    margin: 4px 2px;
+    color: #89b4fa;
 }
 
 #pulseaudio.muted {
-    color: @overlay0;
-    opacity: 0.6;
+    color: #f38ba8;
 }
 
+/* Tray */
 #tray {
-    padding: 2px 6px;
-    margin-right: 2px;
+    background-color: #313244;
+    border-radius: 12px;
+    padding: 0 8px;
+    margin: 4px 2px;
 }
 
 #tray > .passive {
@@ -125,22 +180,23 @@ window#waybar.empty {
     -gtk-icon-effect: highlight;
 }
 
-/* Tooltips */
-tooltip {
-    background: rgba(30, 30, 46, 0.95);
-    border: 1px solid rgba(205, 214, 244, 0.15);
-    border-radius: 8px;
-    padding: 10px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+/* Power button */
+#custom-power {
+    background-color: #f38ba8;
+    color: #1e1e2e;
+    border-radius: 12px;
+    padding: 0 15px;
+    margin: 4px 8px 4px 4px;
+    font-size: 15px;
 }
 
-tooltip label {
-    color: @text;
+#custom-power:hover {
+    background-color: #eba0ac;
 }
 
-/* Hover effects */
-#network:hover,
-#pulseaudio:hover {
-    background: rgba(69, 71, 90, 0.7);
-    border: 1px solid rgba(205, 214, 244, 0.2);
+/* Blink animation */
+@keyframes blink {
+    to {
+        opacity: 0.5;
+    }
 }
