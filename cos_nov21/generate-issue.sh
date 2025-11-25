@@ -33,15 +33,15 @@ cat > /etc/issue << EOF
 
 ${MAGENTA}╔══════════════════════════════════════════════════════════════════════════╗${NC}
 ${MAGENTA}║${NC}                                                                          ${MAGENTA}║${NC}
-${MAGENTA}║${NC}  ${CYAN}       /\\        ${MAGENTA}██████╗ ██████╗  ██████╗ ███████╗               ${MAGENTA}║${NC}
-${MAGENTA}║${NC}  ${CYAN}      /  \\       ${MAGENTA}██╔══██╗██╔══██╗██╔═══██╗██╔════╝               ${MAGENTA}║${NC}
-${MAGENTA}║${NC}  ${CYAN}     / /\\ \\      ${MAGENTA}██████╔╝██████╔╝██║   ██║███████╗               ${MAGENTA}║${NC}
-${MAGENTA}║${NC}  ${CYAN}    / /__\\ \\     ${MAGENTA}██╔═══╝ ██╔══██╗██║   ██║╚════██║               ${MAGENTA}║${NC}
-${MAGENTA}║${NC}  ${CYAN}   / .    . \\    ${MAGENTA}██║     ██████╔╝╚██████╔╝███████║               ${MAGENTA}║${NC}
-${MAGENTA}║${NC}  ${CYAN}  /.'      '.\\   ${MAGENTA}╚═╝     ╚═════╝  ╚═════╝ ╚══════╝               ${MAGENTA}║${NC}
+${MAGENTA}║${NC}   ${CYAN}██████╗   ██████╗   ██████╗   ██████╗${NC}                        ${MAGENTA}║${NC}
+${MAGENTA}║${NC}   ${CYAN}██╔══██╗  ██╔══██╗ ██╔═══██╗ ██╔══██╗${NC}                        ${MAGENTA}║${NC}
+${MAGENTA}║${NC}   ${CYAN}██████╔╝  ██████╔╝ ██║   ██║ ╚█████╔╝${NC}                        ${MAGENTA}║${NC}
+${MAGENTA}║${NC}   ${CYAN}██╔═══╝   ██╔══██╗ ██║   ██║  ██╔══██╗${NC}                       ${MAGENTA}║${NC}
+${MAGENTA}║${NC}   ${CYAN}██║       ██████╔╝ ╚██████╔╝  ██████╔╝${NC}                       ${MAGENTA}║${NC}
+${MAGENTA}║${NC}   ${CYAN}╚═╝       ╚═════╝   ╚═════╝   ╚═════╝ ${NC}                       ${MAGENTA}║${NC}
 ${MAGENTA}║${NC}                                                                          ${MAGENTA}║${NC}
-${MAGENTA}║${NC}          ${WHITE}✨ Parteek Bindra Operating System ✨${NC}                      ${MAGENTA}║${NC}
-${MAGENTA}║${NC}            ${CYAN}Hyprland Wayland Edition${NC} ${GRAY}• Arch Linux Based${NC}           ${MAGENTA}║${NC}
+${MAGENTA}║${NC}        ${WHITE}Parteek Bindra Operating System${NC}                         ${MAGENTA}║${NC}
+${MAGENTA}║${NC}          ${GRAY}Terminus Ut Exordium.${NC}                                   ${MAGENTA}║${NC}
 ${MAGENTA}║${NC}                                                                          ${MAGENTA}║${NC}
 ${MAGENTA}╚══════════════════════════════════════════════════════════════════════════╝${NC}
 

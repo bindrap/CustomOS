@@ -13,6 +13,7 @@ GREEN="\033[0;32m"
 YELLOW="\033[1;33m"
 BLUE="\033[0;34m"
 CYAN="\033[0;36m"
+MAGENTA="\033[0;35m"
 NC="\033[0m"
 
 clear
@@ -20,12 +21,12 @@ echo -e "${MAGENTA}"
 cat << 'EOF'
 ╔═══════════════════════════════════════════════════════╗
 ║                                                       ║
-║      ██████╗ ██████╗  ██████╗ ███████╗              ║
-║      ██╔══██╗██╔══██╗██╔═══██╗██╔════╝              ║
-║      ██████╔╝██████╔╝██║   ██║███████╗              ║
-║      ██╔═══╝ ██╔══██╗██║   ██║╚════██║              ║
-║      ██║     ██████╔╝╚██████╔╝███████║              ║
-║      ╚═╝     ╚═════╝  ╚═════╝ ╚══════╝              ║
+║      ██████╗ ██████╗  ██████╗ ███████╗                ║
+║      ██╔══██╗██╔══██╗██╔═══██╗██╔════╝                ║
+║      ██████╔╝██████╔╝██║   ██║███████╗                ║
+║      ██╔═══╝ ██╔══██╗██║   ██║╚════██║                ║
+║      ██║     ██████╔╝╚██████╔╝███████║                ║
+║      ╚═╝     ╚═════╝  ╚═════╝ ╚══════╝                ║
 ║                                                       ║
 ║         Hyprland Desktop Environment Setup            ║
 ║                                                       ║
@@ -213,6 +214,11 @@ if [ -d "$SCRIPT_DIR/dotfiles/greetd" ]; then
         sudo cp "$SCRIPT_DIR/dotfiles/greetd/launch-hyprland.sh" /usr/local/bin/launch-hyprland
         sudo chmod +x /usr/local/bin/launch-hyprland
     fi
+    # Install greetd start wrapper (runs animation + greeting before tuigreet)
+    if [ -f "$SCRIPT_DIR/dotfiles/greetd/pbos-greetd-start.sh" ]; then
+        sudo cp "$SCRIPT_DIR/dotfiles/greetd/pbos-greetd-start.sh" /usr/local/bin/pbos-greetd-start
+        sudo chmod +x /usr/local/bin/pbos-greetd-start
+    fi
     # Install animated intro script
     if [ -f "$SCRIPT_DIR/dotfiles/greetd/animated-intro.sh" ]; then
         sudo cp "$SCRIPT_DIR/dotfiles/greetd/animated-intro.sh" /usr/local/bin/animated-intro
@@ -241,7 +247,8 @@ DefaultDependencies=no
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/generate-issue
+ExecStart=/bin/sh -c '/usr/local/bin/generate-issue || true'
+SuccessExitStatus=0
 RemainAfterExit=yes
 
 [Install]
@@ -274,12 +281,12 @@ echo -e "${MAGENTA}"
 cat << 'EOF'
 ╔═══════════════════════════════════════════════════════╗
 ║                                                       ║
-║      ██████╗ ██████╗  ██████╗ ███████╗              ║
-║      ██╔══██╗██╔══██╗██╔═══██╗██╔════╝              ║
-║      ██████╔╝██████╔╝██║   ██║███████╗              ║
-║      ██╔═══╝ ██╔══██╗██║   ██║╚════██║              ║
-║      ██║     ██████╔╝╚██████╔╝███████║              ║
-║      ╚═╝     ╚═════╝  ╚═════╝ ╚══════╝              ║
+║      ██████╗ ██████╗  ██████╗ ███████╗                ║
+║      ██╔══██╗██╔══██╗██╔═══██╗██╔════╝                ║
+║      ██████╔╝██████╔╝██║   ██║███████╗                ║
+║      ██╔═══╝ ██╔══██╗██║   ██║╚════██║                ║
+║      ██║     ██████╔╝╚██████╔╝███████║                ║
+║      ╚═╝     ╚═════╝  ╚═════╝ ╚══════╝                ║
 ║                                                       ║
 ║              ✨ Setup Complete! ✨                    ║
 ║                                                       ║

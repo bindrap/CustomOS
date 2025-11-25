@@ -1,10 +1,5 @@
 #!/bin/bash
-# PBOS Launch Script - Shows animated intro and system info before starting Hyprland
-
-# Show animated ASCII art intro
-if [ -x /usr/local/bin/animated-intro ]; then
-    /usr/local/bin/animated-intro
-fi
+# PBOS Launch Script - Shows system info before starting Hyprland
 
 # Show the system info MOTD with ASCII art and philosophy quotes
 if [ -x /usr/local/bin/generate-motd.sh ]; then
