@@ -84,8 +84,15 @@ SHELL=$(get_shell)
 PACKAGES=$(get_packages)
 
 # Pick random quote
-QUOTES_FILE="/root/custom-setup/stoic-quotes.txt"
-if [ -f "$QUOTES_FILE" ]; then
+QUOTES_FILE=""
+for location in "/usr/share/pbos/stoic-quotes.txt" "/root/custom-setup/stoic-quotes.txt"; do
+    if [ -f "$location" ]; then
+        QUOTES_FILE="$location"
+        break
+    fi
+done
+
+if [ -n "$QUOTES_FILE" ]; then
     QUOTE_LINE=$(shuf -n 1 "$QUOTES_FILE")
     QUOTE=$(echo "$QUOTE_LINE" | cut -d'|' -f1)
     AUTHOR=$(echo "$QUOTE_LINE" | cut -d'|' -f2)
@@ -96,57 +103,48 @@ fi
 
 clear
 
-# Display with Arch logo and system info side by side
+# Display with colorful PBOS branding (no nerd-font glyphs for cleanliness)
 echo ""
-echo -e "${CYAN}╔════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║                                                                        ║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN}                 ${MAGENTA}██████╗ ██████╗  ██████╗ ███████╗                 ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN}      /\\        ${MAGENTA}██╔══██╗██╔══██╗██╔═══██╗██╔════╝                 ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN}     /  \\       ${MAGENTA}██████╔╝██████╔╝██║   ██║███████╗                 ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN}    /\\   \\      ${MAGENTA}██╔═══╝ ██╔══██╗██║   ██║╚════██║                 ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN}   /  __  \\     ${MAGENTA}██║     ██████╔╝╚██████╔╝███████║                 ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN}  / .'  '. \\    ${MAGENTA}╚═╝     ╚═════╝  ╚═════╝ ╚══════╝                 ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN} /.'      '.\\   ${WHITE}Parteek Bindra Operating System                  ${CYAN}║${NC}"
-echo -e "${CYAN}║${NC}  ${CYAN}            \\   ${GRAY}Hyprland Edition • Arch Linux Based               ${CYAN}║${NC}"
-echo -e "${CYAN}║                                                                        ║${NC}"
-echo -e "${CYAN}╚════════════════════════════════════════════════════════════════════════╝${NC}"
+echo -e "${MAGENTA}╔══════════════════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${MAGENTA}║${NC}                                                                          ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}   ${CYAN}██████╗   ██████╗   ██████╗   ██████╗${NC}                        ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}   ${CYAN}██╔══██╗  ██╔══██╗ ██╔═══██╗ ██╔══██╗${NC}                        ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}   ${CYAN}██████╔╝  ██████╔╝ ██║   ██║ ╚█████╔╝${NC}                        ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}   ${CYAN}██╔═══╝   ██╔══██╗ ██║   ██║  ██╔══██╗${NC}                       ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}   ${CYAN}██║       ██████╔╝ ╚██████╔╝  ██████╔╝${NC}                       ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}   ${CYAN}╚═╝       ╚═════╝   ╚═════╝   ╚═════╝ ${NC}                       ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}                                                                          ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}        ${WHITE}Parteek Bindra Operating System${NC}                         ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}          ${GRAY}Terminus Ut Exordium.${NC}                                   ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}║${NC}                                                                          ${MAGENTA}║${NC}"
+echo -e "${MAGENTA}╚══════════════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
 # System Information
-echo -e "${MAGENTA}┌─────────────────────────────────────────────────────────────────────┐${NC}"
-echo -e "${MAGENTA}│${NC}                         ${CYAN}⚡ SYSTEM INFORMATION ⚡${NC}                      ${MAGENTA}│${NC}"
-echo -e "${MAGENTA}└─────────────────────────────────────────────────────────────────────┘${NC}"
-echo ""
-
-# Two column layout
-echo -e "${GREEN} 󰌢 Hostname    ${NC} $HOSTNAME              ${GREEN} 󰍛 CPU Usage   ${NC} ${CPU_USAGE}%"
-echo -e "${GREEN}  OS          ${NC} $OS              ${GREEN} 󰘚 Memory      ${NC} $RAM (${RAM_PERCENT}%)"
-echo -e "${GREEN}  Kernel      ${NC} $KERNEL              ${GREEN} 🌡  Temperature ${NC} $TEMP"
-echo -e "${GREEN}  Uptime      ${NC} $UPTIME              ${GREEN}  Shell       ${NC} $SHELL"
-echo -e "${GREEN}  CPU         ${NC} $CPU"
-echo -e "${GREEN} 󰏖 Packages    ${NC} $PACKAGES packages installed"
+echo -e "${MAGENTA}┌─────────────────────────── ${CYAN}System${NC} ${MAGENTA}───────────────────────────┐${NC}"
+printf "${GREEN}  Host      ${NC} %-24s ${GREEN} Uptime     ${NC} %s\n" "$HOSTNAME" "$UPTIME"
+printf "${GREEN}  OS        ${NC} %-24s ${GREEN} Kernel     ${NC} %s\n" "$OS" "$KERNEL"
+printf "${GREEN}  CPU       ${NC} %-24s ${GREEN} Usage      ${NC} %s%%\n" "$CPU" "$CPU_USAGE"
+printf "${GREEN}  Memory    ${NC} %-24s ${GREEN} Temp       ${NC} %s\n" "$RAM (${RAM_PERCENT}%%)" "$TEMP"
+printf "${GREEN}  Packages  ${NC} %-24s ${GREEN} Shell      ${NC} %s\n" "$PACKAGES" "$SHELL"
+echo -e "${MAGENTA}└────────────────────────────────────────────────────────────────────────┘${NC}"
 echo ""
 
 # Philosophy Quote
-echo -e "${YELLOW}┌─────────────────────────────────────────────────────────────────────┐${NC}"
-echo -e "${YELLOW}│${NC}                          ${CYAN}💭 DAILY WISDOM 💭${NC}                          ${YELLOW}│${NC}"
-echo -e "${YELLOW}└─────────────────────────────────────────────────────────────────────┘${NC}"
-echo ""
+echo -e "${YELLOW}┌─────────────────────────── ${CYAN}Daily Wisdom${NC} ${YELLOW}──────────────────────────┐${NC}"
 echo -e "${WHITE}  \"$QUOTE\"${NC}"
-echo -e "${CYAN}                                                    — $AUTHOR${NC}"
+echo -e "${CYAN}                              — $AUTHOR${NC}"
+echo -e "${YELLOW}└────────────────────────────────────────────────────────────────────────┘${NC}"
 echo ""
 
 # Quick Start (minimal for post-install)
 if [ -f "/root/custom-setup/install-auto.sh" ] || [ -f "$HOME/custom-setup/install-auto.sh" ]; then
     # We're in ISO environment
-    echo -e "${GREEN}┌─────────────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${GREEN}│${NC}                          ${YELLOW}⚡ QUICK START ⚡${NC}                           ${GREEN}│${NC}"
-    echo -e "${GREEN}└─────────────────────────────────────────────────────────────────────┘${NC}"
-    echo ""
-    echo -e "  ${CYAN}setup-wifi${NC}       - Connect to WiFi"
-    echo -e "  ${CYAN}partition-disk${NC}   - Prepare disk for dual boot"
-    echo -e "  ${CYAN}install-arch${NC}     - Install PBOS"
-    echo ""
-    echo -e "  ${GRAY}Guides & docs: ~/custom-setup/${NC}"
+    echo -e "${MAGENTA}┌──────────────────────────── ${CYAN}Quick Start${NC} ${MAGENTA}────────────────────────────┐${NC}"
+    echo -e "  ${CYAN}setup-wifi${NC}       ${YELLOW}→${NC} ${WHITE}Connect to WiFi${NC}"
+    echo -e "  ${CYAN}partition-disk${NC}   ${YELLOW}→${NC} ${WHITE}Prepare disk for dual boot${NC}"
+    echo -e "  ${CYAN}install-arch${NC}     ${YELLOW}→${NC} ${WHITE}Install PBOS${NC}"
+    echo -e "  ${GRAY}Docs:${NC} ~/custom-setup/"
+    echo -e "${MAGENTA}└────────────────────────────────────────────────────────────────────────┘${NC}"
     echo ""
 fi

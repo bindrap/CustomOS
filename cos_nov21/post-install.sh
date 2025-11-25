@@ -13,14 +13,24 @@ GREEN="\033[0;32m"
 YELLOW="\033[1;33m"
 BLUE="\033[0;34m"
 CYAN="\033[0;36m"
+MAGENTA="\033[0;35m"
 NC="\033[0m"
 
 clear
-echo -e "${CYAN}"
+echo -e "${MAGENTA}"
 cat << 'EOF'
-===================================================
-   CustomOS Nov21 - Hyprland Setup
-===================================================
+╔═══════════════════════════════════════════════════════╗
+║                                                       ║
+║      ██████╗ ██████╗  ██████╗ ███████╗                ║
+║      ██╔══██╗██╔══██╗██╔═══██╗██╔════╝                ║
+║      ██████╔╝██████╔╝██║   ██║███████╗                ║
+║      ██╔═══╝ ██╔══██╗██║   ██║╚════██║                ║
+║      ██║     ██████╔╝╚██████╔╝███████║                ║
+║      ╚═╝     ╚═════╝  ╚═════╝ ╚══════╝                ║
+║                                                       ║
+║         Hyprland Desktop Environment Setup            ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 EOF
 echo -e "${NC}"
 
@@ -42,6 +52,18 @@ else
     if [ "$CONTINUE_OFFLINE" != "yes" ]; then
         exit 0
     fi
+fi
+
+# Enable multilib repository for Steam and gaming packages
+echo ""
+echo -e "${YELLOW}→${NC} Enabling multilib repository (for Steam and gaming)..."
+if ! grep -q "^\[multilib\]" /etc/pacman.conf; then
+    sudo bash -c 'echo "" >> /etc/pacman.conf'
+    sudo bash -c 'echo "[multilib]" >> /etc/pacman.conf'
+    sudo bash -c 'echo "Include = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf'
+    echo -e "${GREEN}✓${NC} Multilib repository enabled"
+else
+    echo -e "${GREEN}✓${NC} Multilib repository already enabled"
 fi
 
 # Update system
@@ -192,12 +214,52 @@ if [ -d "$SCRIPT_DIR/dotfiles/greetd" ]; then
         sudo cp "$SCRIPT_DIR/dotfiles/greetd/launch-hyprland.sh" /usr/local/bin/launch-hyprland
         sudo chmod +x /usr/local/bin/launch-hyprland
     fi
+    # Install greetd start wrapper (runs animation + greeting before tuigreet)
+    if [ -f "$SCRIPT_DIR/dotfiles/greetd/pbos-greetd-start.sh" ]; then
+        sudo cp "$SCRIPT_DIR/dotfiles/greetd/pbos-greetd-start.sh" /usr/local/bin/pbos-greetd-start
+        sudo chmod +x /usr/local/bin/pbos-greetd-start
+    fi
     # Install animated intro script
     if [ -f "$SCRIPT_DIR/dotfiles/greetd/animated-intro.sh" ]; then
         sudo cp "$SCRIPT_DIR/dotfiles/greetd/animated-intro.sh" /usr/local/bin/animated-intro
         sudo chmod +x /usr/local/bin/animated-intro
     fi
-    echo -e "${GREEN}✓${NC} Login screen configured (tuigreet with animated ASCII art)"
+    # Install generate-issue script for login screen branding
+    if [ -f "$SCRIPT_DIR/generate-issue.sh" ]; then
+        sudo cp "$SCRIPT_DIR/generate-issue.sh" /usr/local/bin/generate-issue
+        sudo chmod +x /usr/local/bin/generate-issue
+    fi
+    # Install generate-motd script
+    if [ -f "$SCRIPT_DIR/generate-motd.sh" ]; then
+        sudo cp "$SCRIPT_DIR/generate-motd.sh" /usr/local/bin/generate-motd
+        sudo chmod +x /usr/local/bin/generate-motd
+    fi
+    # Copy stoic quotes if available
+    if [ -f "$SCRIPT_DIR/stoic-quotes.txt" ]; then
+        sudo cp "$SCRIPT_DIR/stoic-quotes.txt" /usr/share/pbos/stoic-quotes.txt 2>/dev/null || sudo mkdir -p /usr/share/pbos && sudo cp "$SCRIPT_DIR/stoic-quotes.txt" /usr/share/pbos/
+    fi
+    # Create systemd service to update /etc/issue on boot
+    sudo tee /etc/systemd/system/pbos-issue-generator.service > /dev/null << 'EOFSERVICE'
+[Unit]
+Description=PBOS Login Screen Branding Generator
+Before=greetd.service
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c '/usr/local/bin/generate-issue || true'
+SuccessExitStatus=0
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOFSERVICE
+    sudo systemctl enable pbos-issue-generator.service
+    # Generate initial /etc/issue
+    if [ -x /usr/local/bin/generate-issue ]; then
+        sudo /usr/local/bin/generate-issue
+    fi
+    echo -e "${GREEN}✓${NC} Login screen configured (tuigreet with PBOS branding and philosophy)"
 else
     echo -e "${YELLOW}⚠${NC} Greetd config not found, skipping"
 fi
@@ -215,11 +277,20 @@ echo -e "${GREEN}✓${NC} Hyprland will start from login screen (greetd)"
 
 # Done!
 clear
-echo -e "${GREEN}"
+echo -e "${MAGENTA}"
 cat << 'EOF'
-===================================================
-          Setup Complete!
-===================================================
+╔═══════════════════════════════════════════════════════╗
+║                                                       ║
+║      ██████╗ ██████╗  ██████╗ ███████╗                ║
+║      ██╔══██╗██╔══██╗██╔═══██╗██╔════╝                ║
+║      ██████╔╝██████╔╝██║   ██║███████╗                ║
+║      ██╔═══╝ ██╔══██╗██║   ██║╚════██║                ║
+║      ██║     ██████╔╝╚██████╔╝███████║                ║
+║      ╚═╝     ╚═════╝  ╚═════╝ ╚══════╝                ║
+║                                                       ║
+║              ✨ Setup Complete! ✨                    ║
+║                                                       ║
+╚═══════════════════════════════════════════════════════╝
 EOF
 echo -e "${NC}"
 
