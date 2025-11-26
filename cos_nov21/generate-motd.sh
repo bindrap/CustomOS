@@ -103,21 +103,30 @@ fi
 
 clear
 
-# Display with colorful PBOS branding (no nerd-font glyphs for cleanliness)
+# Display with colorful Banknote Bindrap Operating System branding
 echo ""
-echo -e "${MAGENTA}╔══════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${MAGENTA}║${NC}                                                                          ${MAGENTA}║${NC}"
-echo -e "${MAGENTA}║${NC}   ${CYAN}██████╗   ██████╗   ██████╗   ██████╗${NC}                        ${MAGENTA}║${NC}"
-echo -e "${MAGENTA}║${NC}   ${CYAN}██╔══██╗  ██╔══██╗ ██╔═══██╗ ██╔══██╗${NC}                        ${MAGENTA}║${NC}"
-echo -e "${MAGENTA}║${NC}   ${CYAN}██████╔╝  ██████╔╝ ██║   ██║ ╚█████╔╝${NC}                        ${MAGENTA}║${NC}"
-echo -e "${MAGENTA}║${NC}   ${CYAN}██╔═══╝   ██╔══██╗ ██║   ██║  ██╔══██╗${NC}                       ${MAGENTA}║${NC}"
-echo -e "${MAGENTA}║${NC}   ${CYAN}██║       ██████╔╝ ╚██████╔╝  ██████╔╝${NC}                       ${MAGENTA}║${NC}"
-echo -e "${MAGENTA}║${NC}   ${CYAN}╚═╝       ╚═════╝   ╚═════╝   ╚═════╝ ${NC}                       ${MAGENTA}║${NC}"
-echo -e "${MAGENTA}║${NC}                                                                          ${MAGENTA}║${NC}"
-echo -e "${MAGENTA}║${NC}        ${WHITE}Parteek Bindra Operating System${NC}                         ${MAGENTA}║${NC}"
-echo -e "${MAGENTA}║${NC}          ${GRAY}Terminus Ut Exordium.${NC}                                   ${MAGENTA}║${NC}"
-echo -e "${MAGENTA}║${NC}                                                                          ${MAGENTA}║${NC}"
-echo -e "${MAGENTA}╚══════════════════════════════════════════════════════════════════════════╝${NC}"
+# Find and display ASCII logo
+LOGO_FILE=""
+for location in "/usr/share/pbos/ascii-logo.txt" "/root/custom-setup/ascii-logo.txt" "$HOME/.config/ascii-logo.txt" "$(dirname "$0")/ascii-logo.txt"; do
+    if [ -f "$location" ]; then
+        LOGO_FILE="$location"
+        break
+    fi
+done
+
+if [ -n "$LOGO_FILE" ]; then
+    # Display ASCII logo with color
+    while IFS= read -r line; do
+        echo -e "${CYAN}${line}${NC}"
+    done < "$LOGO_FILE"
+else
+    # Fallback to simple text logo
+    echo -e "${CYAN}╔══════════════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║${NC}                                                                          ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}        ${WHITE}Banknote Bindrap Operating System${NC}                         ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}                                                                          ${CYAN}║${NC}"
+    echo -e "${CYAN}╚══════════════════════════════════════════════════════════════════════════╝${NC}"
+fi
 echo ""
 
 # System Information

@@ -25,7 +25,7 @@ dna_helix() {
         echo ""
         echo -e "${CYAN}╔════════════════════════════════════════════════════════════╗${NC}"
         echo -e "${CYAN}║                                                            ║${NC}"
-        echo -e "${CYAN}║          ${MAGENTA}Welcome to PBOS - Loading System...${CYAN}            ║${NC}"
+        echo -e "${CYAN}║     ${MAGENTA}Welcome to Banknote Bindrap OS - Loading...${CYAN}      ║${NC}"
         echo -e "${CYAN}║                                                            ║${NC}"
         echo -e "${CYAN}╚════════════════════════════════════════════════════════════╝${NC}"
         echo ""
@@ -44,7 +44,7 @@ dna_helix() {
         done
 
         echo ""
-        echo -e "              ${CYAN}Initializing PBOS...${NC}"
+        echo -e "       ${CYAN}Initializing Banknote Bindrap OS...${NC}"
 
         sleep 0.08
         ((frame++))
@@ -88,7 +88,7 @@ binary_rain() {
         done
 
         echo ""
-        echo -e "              ${CYAN}Initializing PBOS...${NC}"
+        echo -e "       ${CYAN}Initializing Banknote Bindrap OS...${NC}"
 
         sleep 0.1
     done
@@ -103,7 +103,7 @@ star_field() {
         echo ""
         echo -e "${CYAN}╔════════════════════════════════════════════════════════════╗${NC}"
         echo -e "${CYAN}║                                                            ║${NC}"
-        echo -e "${CYAN}║          ${MAGENTA}Welcome to PBOS - Loading System...${CYAN}            ║${NC}"
+        echo -e "${CYAN}║     ${MAGENTA}Welcome to Banknote Bindrap OS - Loading...${CYAN}      ║${NC}"
         echo -e "${CYAN}║                                                            ║${NC}"
         echo -e "${CYAN}╚════════════════════════════════════════════════════════════╝${NC}"
         echo ""
@@ -134,7 +134,7 @@ star_field() {
         fi
 
         tput cup 20 0
-        echo -e "              ${CYAN}Initializing PBOS...${NC}"
+        echo -e "       ${CYAN}Initializing Banknote Bindrap OS...${NC}"
 
         sleep 0.1
     done
@@ -149,7 +149,7 @@ spinning_arch() {
         echo ""
         echo -e "${CYAN}╔════════════════════════════════════════════════════════════╗${NC}"
         echo -e "${CYAN}║                                                            ║${NC}"
-        echo -e "${CYAN}║          ${MAGENTA}Welcome to PBOS - Loading System...${CYAN}            ║${NC}"
+        echo -e "${CYAN}║     ${MAGENTA}Welcome to Banknote Bindrap OS - Loading...${CYAN}      ║${NC}"
         echo -e "${CYAN}║                                                            ║${NC}"
         echo -e "${CYAN}╚════════════════════════════════════════════════════════════╝${NC}"
         echo ""
@@ -196,7 +196,7 @@ spinning_arch() {
 
         echo ""
         echo ""
-        echo -e "              ${CYAN}Initializing PBOS...${NC}"
+        echo -e "       ${CYAN}Initializing Banknote Bindrap OS...${NC}"
 
         sleep 0.12
     done
@@ -211,7 +211,7 @@ wave_animation() {
         echo ""
         echo -e "${CYAN}╔════════════════════════════════════════════════════════════╗${NC}"
         echo -e "${CYAN}║                                                            ║${NC}"
-        echo -e "${CYAN}║          ${MAGENTA}Welcome to PBOS - Loading System...${CYAN}            ║${NC}"
+        echo -e "${CYAN}║     ${MAGENTA}Welcome to Banknote Bindrap OS - Loading...${CYAN}      ║${NC}"
         echo -e "${CYAN}║                                                            ║${NC}"
         echo -e "${CYAN}╚════════════════════════════════════════════════════════════╝${NC}"
         echo ""
@@ -232,7 +232,7 @@ wave_animation() {
         done
 
         echo ""
-        echo -e "              ${CYAN}Initializing PBOS...${NC}"
+        echo -e "       ${CYAN}Initializing Banknote Bindrap OS...${NC}"
 
         sleep 0.08
     done
