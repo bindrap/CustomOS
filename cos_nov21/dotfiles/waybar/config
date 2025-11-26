@@ -22,6 +22,7 @@
         "memory",
         "temperature",
         "backlight",
+        "custom/audio-switcher",
         "pulseaudio",
         "network",
         "battery",
@@ -131,6 +132,13 @@
         "tooltip": false
     },
 
+    "custom/audio-switcher": {
+        "format": "󰓃",
+        "tooltip": true,
+        "tooltip-format": "Switch output / voice routes",
+        "on-click": "~/.config/waybar/scripts/audio-switcher.sh"
+    },
+
     "battery": {
         "interval": 60,
         "states": {
@@ -172,9 +180,9 @@
             "default": ["", "", ""]
         },
         "on-click": "pavucontrol",
-        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
-        "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+",
-        "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-",
+        "on-click-right": "~/.config/hypr/scripts/volume-notify.sh mute",
+        "on-scroll-up": "~/.config/hypr/scripts/volume-notify.sh up",
+        "on-scroll-down": "~/.config/hypr/scripts/volume-notify.sh down",
         "tooltip-format": "{desc}: {volume}%"
     },
 
