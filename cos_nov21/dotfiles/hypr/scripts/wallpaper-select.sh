@@ -44,9 +44,20 @@ done
 
 # Show menu and get selection (prefer rofi, fallback to wofi)
 if command -v rofi >/dev/null 2>&1; then
-    SELECTED=$(echo -e "$MENU_ENTRIES" | rofi -dmenu -i -p "󰸉 Select Wallpaper" -theme-str 'window {width: 720px;} listview {lines: 12;}')
+    # Rofi supports image previews via icon attributes
+    SELECTED=$(printf "%b" "$MENU_ENTRIES" | while IFS= read -r line; do
+        idx="${line%%||*}"
+        label="${line#*||}"
+        wp_path="${WALLPAPER_LIST[$idx]}"
+        printf "%s\0icon\x1f%s\n" "$line" "$wp_path"
+    done | rofi -dmenu -i -p "󰸉 Select Wallpaper" -show-icons -theme-str 'window {width: 780px;} listview {lines: 12;}' )
 else
-    SELECTED=$(echo -e "$MENU_ENTRIES" | wofi --dmenu --prompt "󰸉 Select Wallpaper" --width 720 --height 440)
+    # Wofi renders inline previews when --allow-images is set and entries start with img:
+    SELECTED=$(printf "%b" "$MENU_ENTRIES" | while IFS= read -r line; do
+        idx="${line%%||*}"
+        wp_path="${WALLPAPER_LIST[$idx]}"
+        printf "img:%s\t%s\n" "$wp_path" "$line"
+    done | wofi --dmenu --prompt "󰸉 Select Wallpaper" --width 780 --height 460 --allow-images)
 fi
 
 if [ -z "$SELECTED" ]; then
