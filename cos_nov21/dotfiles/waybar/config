@@ -22,8 +22,10 @@
         "memory",
         "temperature",
         "backlight",
+        "custom/audio-switcher",
         "pulseaudio",
         "network",
+        "bluetooth",
         "battery",
         "tray",
         "custom/power"
@@ -131,6 +133,13 @@
         "tooltip": false
     },
 
+    "custom/audio-switcher": {
+        "format": "󰓃",
+        "tooltip": true,
+        "tooltip-format": "Switch output / voice routes",
+        "on-click": "~/.config/waybar/scripts/audio-switcher.sh"
+    },
+
     "battery": {
         "interval": 60,
         "states": {
@@ -154,7 +163,17 @@
         "tooltip-format-wifi": "{essid} ({signalStrength}%)\n󰢮 {bandwidthUpBytes}  󰢭 {bandwidthDownBytes}",
         "tooltip-format-ethernet": "{ifname}: {ipaddr}/{cidr}\n󰢮 {bandwidthUpBytes}  󰢭 {bandwidthDownBytes}",
         "tooltip-format-disconnected": "Disconnected",
-        "on-click": "nm-connection-editor"
+        "on-click": "nm-connection-editor",
+        "on-click-right": "~/.config/waybar/scripts/wifi-menu.sh"
+    },
+
+    "bluetooth": {
+        "format": "󰂲",
+        "format-connected": "󰂯",
+        "format-disabled": "󰂲",
+        "on-click": "blueman-manager",
+        "on-click-right": "~/.config/waybar/scripts/bluetooth-menu.sh",
+        "tooltip-format": "{num_connections} connected"
     },
 
     "pulseaudio": {
@@ -172,9 +191,9 @@
             "default": ["", "", ""]
         },
         "on-click": "pavucontrol",
-        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
-        "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+",
-        "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-",
+        "on-click-right": "~/.config/hypr/scripts/volume-notify.sh mute",
+        "on-scroll-up": "~/.config/hypr/scripts/volume-notify.sh up",
+        "on-scroll-down": "~/.config/hypr/scripts/volume-notify.sh down",
         "tooltip-format": "{desc}: {volume}%"
     },
 
@@ -187,6 +206,7 @@
     "custom/power": {
         "format": "⏻",
         "on-click": "rofi -show powermenu -modi 'powermenu:~/.config/rofi/powermenu.sh'",
+        "on-click-right": "~/.config/waybar/scripts/power-menu.sh",
         "tooltip": false
     }
 }
