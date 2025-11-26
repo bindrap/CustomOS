@@ -124,12 +124,29 @@ WORK_DIR="/tmp/archiso-customos-nov21"
 ISO_DIR="$WORK_DIR/iso-build"
 OUTPUT_DIR="/workspace/cos_nov21/iso-output"
 
-echo "→ Cleaning old work..."
+# Check available memory
+AVAILABLE_MEM=$(free -m | awk '/^Mem:/{print $7}')
+echo "→ Available memory: ${AVAILABLE_MEM}MB"
+if [ "$AVAILABLE_MEM" -lt 2048 ]; then
+    echo "  ⚠ Warning: Low memory detected. Build may fail."
+    echo "  ⚠ Recommended: At least 2GB free memory"
+fi
+
+echo "→ Cleaning old work and temporary files..."
 rm -rf "$WORK_DIR"
-# Also clean any failed SquashFS temp files
+# Clean any failed SquashFS temp files
 rm -rf /tmp/squashfs-* 2>/dev/null || true
+# Clean any leftover mksquashfs temp files
+rm -rf /tmp/mksquashfs-* 2>/dev/null || true
+# Clean archiso work directory
+rm -rf /tmp/archiso-tmp.* 2>/dev/null || true
+# Free up page cache to maximize available memory
+sync
+echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || echo "  ⚠ Could not drop caches (non-critical)"
+
 mkdir -p "$WORK_DIR"
 mkdir -p "$OUTPUT_DIR"
+echo "  ✓ Cleanup complete"
 
 echo "→ Copying archiso releng profile..."
 cp -r /usr/share/archiso/configs/releng "$ISO_DIR"
@@ -423,13 +440,26 @@ sed -i "s/iso_version=\"[0-9.]*\"/iso_version=\"${ISO_DATE}\"/" profiledef.sh
 # Use lighter compression to avoid out-of-memory errors in Docker
 # gzip uses much less memory than xz (default)
 echo "→ Setting compression to gzip (lower memory usage)..."
-# Add compression options after the airootfs_image_type line
-sed -i "/airootfs_image_type=\"squashfs\"/a airootfs_image_tool_options=(\"-comp\" \"gzip\" \"-Xcompression-level\" \"6\" \"-b\" \"1M\")" profiledef.sh
+
+# Method 1: Try to modify existing airootfs_image_tool_options if present
+if grep -q "airootfs_image_tool_options=" profiledef.sh; then
+    sed -i 's/airootfs_image_tool_options=.*/airootfs_image_tool_options=("-comp" "gzip" "-Xcompression-level" "6" "-b" "1M" "-processors" "4")/' profiledef.sh
+else
+    # Method 2: Add new compression options after airootfs_image_type line
+    sed -i '/airootfs_image_type="squashfs"/a airootfs_image_tool_options=("-comp" "gzip" "-Xcompression-level" "6" "-b" "1M" "-processors" "4")' profiledef.sh
+fi
+
+# Verify the change was applied
+if grep -q 'airootfs_image_tool_options.*gzip' profiledef.sh; then
+    echo "  ✓ Compression set to gzip with 4 processors"
+else
+    echo "  ⚠ Warning: Could not verify compression settings in profiledef.sh"
+fi
 
 echo "→ ISO customization applied:"
 echo "  Name: ${ISO_NAME}"
 echo "  Version: ${ISO_DATE}"
-echo "  Compression: gzip (memory-efficient)"
+echo "  Compression: gzip (memory-efficient, 4 processors max)"
 
 # Build ISO
 echo ""
@@ -437,6 +467,10 @@ echo "=================================================="
 echo "  Building PBOS Hyprland ISO - 10-15 minutes"
 echo "=================================================="
 echo ""
+
+# Set memory limits for mksquashfs to prevent OOM errors
+export MKSQUASHFS_PROCESSORS=4
+export MKSQUASHFS_MEM=512M
 
 mkarchiso -v -w "$WORK_DIR/work" -o "$OUTPUT_DIR" "$ISO_DIR"
 
