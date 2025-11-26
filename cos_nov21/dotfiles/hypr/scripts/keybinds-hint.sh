@@ -1,78 +1,52 @@
 #!/bin/bash
-# Display keybindings cheat sheet
+# Display keybindings cheat sheet - Hyde Style
 
 KEYBINDS="
 ╔═══════════════════════════════════════════════════════════════╗
-║                  HYPRLAND KEYBINDINGS                         ║
+║           CUSTOMOS - HYPRLAND KEYBINDINGS (ALT-based)        ║
 ╚═══════════════════════════════════════════════════════════════╝
 
 APPLICATIONS
-  Super + T              Terminal
-  Super + Alt + T        Floating Terminal
-  Super + E              File Manager
-  Super + B              Browser
-  Super + C              VS Code
-  Super + N              Notes (Neovim)
-  Super + O              Obsidian
-  Super + M              Music Player
-  Super + D              Discord
-  Super + A              App Launcher
-  Super + V              Clipboard History
-  Ctrl + Shift + Esc     System Monitor
+  ALT + T                Terminal (Kitty)
+  ALT + E                File Manager (Thunar)
+  ALT + A                App Launcher (Wofi)
 
 WINDOW MANAGEMENT
-  Super + Q              Close Window
-  Alt + F4               Close Window
-  Super + W              Toggle Floating
-  Super + F              Toggle Fullscreen
-  Super + Shift + F      Pin Window
-  Super + J              Toggle Split
-  Super + L              Lock Screen
+  ALT + Q                Close Window
+  ALT + Space            Toggle Floating
+  ALT + F                Toggle Fullscreen
+  ALT + P                Pseudotile
+  ALT + J                Toggle Split
+  ALT + M                Exit Hyprland
 
 WINDOW FOCUS
-  Super + Arrow Keys     Move Focus
-  Alt + Tab              Cycle Windows
-
-WINDOW RESIZE
-  Super + Shift + Arrows Resize Active Window
-
-WINDOW MOVE
-  Super + Shift + Ctrl + Arrows   Move Window
+  ALT + Arrow Keys       Move Focus Between Windows
 
 WORKSPACES
-  Super + [1-9]          Switch to Workspace
-  Super + Shift + [1-9]  Move Window to Workspace
-  Super + Alt + [1-9]    Move Window Silently
-  Super + Ctrl + Right   Next Workspace
-  Super + Ctrl + Left    Previous Workspace
-  Super + S              Scratchpad Toggle
+  ALT + [1-9,0]          Switch to Workspace 1-10
+  ALT + SHIFT + [1-9,0]  Move Window to Workspace 1-10
 
 SCREENSHOTS
-  Super + P              Area Screenshot
-  Super + Shift + P      Color Picker
-  Print                  Fullscreen Screenshot
+  Print                  Area Screenshot (to clipboard)
+  SHIFT + Print          Fullscreen Screenshot (to clipboard)
+  ALT + Print            Save Screenshot to ~/Pictures
 
-MEDIA
-  XF86AudioMute          Mute/Unmute
-  XF86AudioRaise         Volume Up
-  XF86AudioLower         Volume Down
-  XF86AudioPlay          Play/Pause
-  XF86AudioNext          Next Track
-  XF86AudioPrev          Previous Track
-
-THEMING
-  Super + Shift + T      Theme Selector
-  Super + Shift + W      Wallpaper Selector
-  Super + Alt + Right    Next Wallpaper
-  Super + Alt + Left     Previous Wallpaper
-
-UTILITIES
-  Super + /              This Help
-  Super + ,              Emoji Picker
-  Ctrl + Alt + Del       Logout Menu
+HYDE CUSTOMIZATION 󰀻
+  ALT + C                Hyde Menu (All Options)
+  ALT + SHIFT + W        Wallpaper Picker
+  ALT + SHIFT + T        Theme Selector
+  ALT + CTRL + Right     Next Wallpaper
+  ALT + CTRL + Left      Previous Wallpaper
+  ALT + CTRL + Up        Random Wallpaper
+  ALT + H                This Help Menu
 
 SYSTEM
-  Super + Delete         Exit Hyprland
+  ALT + SHIFT + R        Reload Waybar
 "
 
-echo "$KEYBINDS" | wofi --dmenu --width 800 --height 600 --prompt "Keybindings"
+# Show using rofi or wofi
+if command -v rofi >/dev/null 2>&1; then
+    echo "$KEYBINDS" | rofi -dmenu -i -p " Keybindings" -theme-str 'window {width: 700px;} listview {lines: 20;}'
+else
+    echo "$KEYBINDS" | wofi --dmenu --width 800 --height 600 --prompt " Keybindings"
+fi

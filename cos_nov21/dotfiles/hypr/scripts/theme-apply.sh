@@ -164,6 +164,6 @@ hyprctl reload
 killall waybar 2>/dev/null; waybar &
 killall mako 2>/dev/null; mako &
 
-notify-send "Theme Applied" "Successfully switched to $THEME_NAME" -t 3000
+notify-send "󰉼 Theme Applied" "Successfully switched to $THEME_NAME" -t 3000
 
 echo "Theme applied successfully!"
