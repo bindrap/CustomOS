@@ -1,69 +1,61 @@
 #!/bin/bash
 # Interactive wallpaper selector with preview - Hyde Style
 
-HYPR_DIR="$HOME/.config/hypr"
-WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
-THEME_NAME=$(cat "$HYPR_DIR/.current-theme" 2>/dev/null || echo "catppuccin-mocha")
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/wallpaper-lib.sh"
 
-# Get list of wallpapers
-if [ -d "$WALLPAPER_DIR/$THEME_NAME" ]; then
-    WALLPAPER_LIST=("$WALLPAPER_DIR/$THEME_NAME"/*.{jpg,png,jpeg})
-else
-    WALLPAPER_LIST=("$WALLPAPER_DIR"/*.{jpg,png,jpeg})
-fi
+HYPR_DIR="${HYPR_DIR:-$HOME/.config/hypr}"
 
-# Remove glob patterns if no files found
-WALLPAPER_LIST=("${WALLPAPER_LIST[@]}" | grep -v '\*')
+mapfile -t WALLPAPER_LIST < <(get_wallpaper_list)
+mapfile -t WALLPAPER_ROOTS < <(get_wallpaper_roots)
 
 if [ ${#WALLPAPER_LIST[@]} -eq 0 ]; then
-    notify-send "No Wallpapers" "No wallpapers found in $WALLPAPER_DIR" -u critical
+    notify-send "No Wallpapers" "No wallpapers found in $(get_wallpaper_roots | paste -sd ', ' -)" -u critical
     exit 1
 fi
 
-# Create menu entries
+# Build a readable name that shows folder context for similarly named files
+format_wallpaper_label() {
+    local path="$1"
+    local shortened="$path"
+
+    for root in "${WALLPAPER_ROOTS[@]}"; do
+        case "$path" in
+            "$root"/*)
+                shortened="${path#"$root"/}"
+                break
+                ;;
+        esac
+    done
+
+    echo "$shortened"
+}
+
+# Create menu entries with deterministic indices so selection always resolves
 MENU_ENTRIES=""
-CURRENT_WALLPAPER=$(cat "$HYPR_DIR/.current-wallpaper" 2>/dev/null)
-for wallpaper in "${WALLPAPER_LIST[@]}"; do
-    if [ "$wallpaper" = "$CURRENT_WALLPAPER" ]; then
-        MENU_ENTRIES+="● $(basename "$wallpaper") (current)\n"
-    else
-        MENU_ENTRIES+="  $(basename "$wallpaper")\n"
-    fi
+CURRENT_WALLPAPER=$(get_current_wallpaper)
+for i in "${!WALLPAPER_LIST[@]}"; do
+    wallpaper="${WALLPAPER_LIST[$i]}"
+    marker="  "
+    [ "$wallpaper" = "$CURRENT_WALLPAPER" ] && marker="● "
+
+    MENU_ENTRIES+="$i||$marker$(format_wallpaper_label "$wallpaper")\n"
 done
 
 # Show menu and get selection (prefer rofi, fallback to wofi)
 if command -v rofi >/dev/null 2>&1; then
-    SELECTED=$(echo -e "$MENU_ENTRIES" | rofi -dmenu -i -p "󰸉 Select Wallpaper" -theme-str 'window {width: 600px;} listview {lines: 12;}')
+    SELECTED=$(echo -e "$MENU_ENTRIES" | rofi -dmenu -i -p "󰸉 Select Wallpaper" -theme-str 'window {width: 720px;} listview {lines: 12;}')
 else
-    SELECTED=$(echo -e "$MENU_ENTRIES" | wofi --dmenu --prompt "󰸉 Select Wallpaper" --width 600 --height 400)
+    SELECTED=$(echo -e "$MENU_ENTRIES" | wofi --dmenu --prompt "󰸉 Select Wallpaper" --width 720 --height 440)
 fi
 
 if [ -z "$SELECTED" ]; then
     exit 0
 fi
 
-# Extract wallpaper name (remove marker and current indicator)
-WALLPAPER_NAME=$(echo "$SELECTED" | sed 's/^[●  ]*//' | sed 's/ (current)$//')
+# Resolve selection via stable index prefix (format: index||label)
+SELECTED_INDEX=$(echo "$SELECTED" | cut -d '|' -f1)
 
-# Find full path
-for wallpaper in "${WALLPAPER_LIST[@]}"; do
-    if [ "$(basename "$wallpaper")" = "$WALLPAPER_NAME" ]; then
-        SELECTED_WALLPAPER="$wallpaper"
-        break
-    fi
-done
-
-# Set wallpaper
-if [ -n "$SELECTED_WALLPAPER" ]; then
-    if command -v swww >/dev/null 2>&1; then
-        swww img "$SELECTED_WALLPAPER" --transition-type fade --transition-fps 60
-    else
-        killall hyprpaper 2>/dev/null
-        echo "preload = $SELECTED_WALLPAPER" > "$HYPR_DIR/hyprpaper.conf"
-        echo "wallpaper = ,$SELECTED_WALLPAPER" >> "$HYPR_DIR/hyprpaper.conf"
-        hyprpaper &
-    fi
-
-    echo "$SELECTED_WALLPAPER" > "$HYPR_DIR/.current-wallpaper"
-    notify-send "󰸉 Wallpaper Changed" "$WALLPAPER_NAME" -t 2000
+if [[ "$SELECTED_INDEX" =~ ^[0-9]+$ ]] && [ "$SELECTED_INDEX" -lt ${#WALLPAPER_LIST[@]} ]; then
+    set_wallpaper "${WALLPAPER_LIST[$SELECTED_INDEX]}"
 fi

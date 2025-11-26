@@ -2,22 +2,50 @@
 # Shared wallpaper library functions
 # Used by wallpaper-next.sh, wallpaper-prev.sh, etc.
 
-HYPR_DIR="$HOME/.config/hypr"
-WALLPAPER_DIR="$HOME/Pictures/wallpapers"
+HYPR_DIR="${HYPR_DIR:-$HOME/.config/hypr}"
+WALLPAPER_PRIMARY_DIR="${WALLPAPER_PRIMARY_DIR:-$HOME/Pictures/wallpapers}"
+WALLPAPER_SECONDARY_DIR="${WALLPAPER_SECONDARY_DIR:-$HOME/Pictures/Wallpapers}"
+
+get_wallpaper_roots() {
+    local roots=()
+
+    if [ -d "$WALLPAPER_PRIMARY_DIR" ]; then
+        roots+=("$WALLPAPER_PRIMARY_DIR")
+    fi
+
+    if [ -d "$WALLPAPER_SECONDARY_DIR" ]; then
+        roots+=("$WALLPAPER_SECONDARY_DIR")
+    fi
+
+    printf '%s\n' "${roots[@]}"
+}
 
 # Get list of available wallpapers
 get_wallpaper_list() {
-    local THEME_NAME=$(cat "$HYPR_DIR/.current-theme" 2>/dev/null || echo "default")
+    local THEME_NAME=$(cat "$HYPR_DIR/.current-theme" 2>/dev/null || echo "catppuccin-mocha")
     local WALLPAPER_LIST=()
+    local ROOT_DIRS=($(get_wallpaper_roots))
 
-    # Check for theme-specific wallpapers
-    if [ -d "$WALLPAPER_DIR/$THEME_NAME" ]; then
-        WALLPAPER_LIST=($(find "$WALLPAPER_DIR/$THEME_NAME" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) 2>/dev/null))
+    if [ ${#ROOT_DIRS[@]} -eq 0 ]; then
+        return 1
     fi
 
-    # Fallback to main wallpaper directory
+    # Check for theme-specific wallpapers
+    for dir in "${ROOT_DIRS[@]}"; do
+        if [ -d "$dir/$THEME_NAME" ]; then
+            while IFS= read -r file; do
+                WALLPAPER_LIST+=("$file")
+            done < <(find "$dir/$THEME_NAME" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) 2>/dev/null)
+        fi
+    done
+
+    # Fallback to main wallpaper directory (recursive to capture nested sets)
     if [ ${#WALLPAPER_LIST[@]} -eq 0 ]; then
-        WALLPAPER_LIST=($(find "$WALLPAPER_DIR" -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) 2>/dev/null))
+        for dir in "${ROOT_DIRS[@]}"; do
+            while IFS= read -r file; do
+                WALLPAPER_LIST+=("$file")
+            done < <(find "$dir" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) 2>/dev/null)
+        done
     fi
 
     if [ ${#WALLPAPER_LIST[@]} -eq 0 ]; then
@@ -25,8 +53,7 @@ get_wallpaper_list() {
     fi
 
     # Sort for consistent order
-    IFS=$'\n' WALLPAPER_LIST=($(sort <<<"${WALLPAPER_LIST[*]}"))
-    unset IFS
+    mapfile -t WALLPAPER_LIST < <(printf '%s\n' "${WALLPAPER_LIST[@]}" | sort -u)
 
     printf '%s\n' "${WALLPAPER_LIST[@]}"
 }
@@ -82,7 +109,7 @@ cycle_wallpaper() {
     local WALLPAPER_LIST=($(get_wallpaper_list))
 
     if [ ${#WALLPAPER_LIST[@]} -eq 0 ]; then
-        notify-send "No Wallpapers" "No wallpapers found in $WALLPAPER_DIR" -u critical
+        notify-send "No Wallpapers" "No wallpapers found in $(get_wallpaper_roots | paste -sd ', ' -)" -u critical
         return 1
     fi
 
