@@ -1,4 +1,51 @@
-# Dotfiles Sync Directory
+# CustomOS Dotfiles - Hyde-style Configuration
+
+This directory contains a Hyde-style Hyprland configuration with wallpaper pickers, theme switchers, and comprehensive customization tools.
+
+## 🎨 Hyde Features
+
+### Quick Access
+- **ALT + C** - Hyde Menu (access all customization options)
+- **ALT + H** - Show keybindings help
+
+### Wallpaper Management
+- **ALT + SHIFT + W** - Wallpaper Picker (interactive selection)
+- **ALT + CTRL + Right** - Next Wallpaper
+- **ALT + CTRL + Left** - Previous Wallpaper
+- **ALT + CTRL + Up** - Random Wallpaper
+
+### Theme Switching
+- **ALT + SHIFT + T** - Theme Selector (choose from 10 themes)
+- Themes automatically apply to: Hyprland, Waybar, Kitty, Wofi, Mako
+- Themes can have dedicated wallpaper directories
+
+### Available Themes
+1. Catppuccin Mocha (default)
+2. Dracula
+3. Gruvbox Dark
+4. Nord
+5. Tokyo Night
+6. Solarized Dark
+7. Rose Pine
+8. Everforest
+9. Decay Green
+10. OneDark
+
+### Setup Wallpapers
+```bash
+# Create wallpaper directory
+mkdir -p ~/Pictures/Wallpapers
+
+# Optional: Create theme-specific directories
+mkdir -p ~/Pictures/Wallpapers/catppuccin-mocha
+mkdir -p ~/Pictures/Wallpapers/dracula
+# etc...
+
+# Add your wallpapers
+cp /path/to/wallpapers/* ~/Pictures/Wallpapers/
+```
+
+## 📁 Dotfiles Sync
 
 This directory is used to sync dotfiles between your VM and local machine.
 

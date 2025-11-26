@@ -1,5 +1,5 @@
 #!/bin/bash
-# Interactive theme selector
+# Interactive theme selector - Hyde Style
 
 HYPR_DIR="$HOME/.config/hypr"
 THEMES_DIR="$HYPR_DIR/themes"
@@ -29,8 +29,12 @@ for theme in "${THEMES[@]}"; do
     fi
 done
 
-# Show menu and get selection
-SELECTED=$(echo -e "$MENU_ENTRIES" | wofi --dmenu --prompt "Select Theme" --width 400 --height 500)
+# Show menu and get selection (prefer rofi, fallback to wofi)
+if command -v rofi >/dev/null 2>&1; then
+    SELECTED=$(echo -e "$MENU_ENTRIES" | rofi -dmenu -i -p "󰉼 Select Theme" -theme-str 'window {width: 400px;} listview {lines: 10;}')
+else
+    SELECTED=$(echo -e "$MENU_ENTRIES" | wofi --dmenu --prompt "󰉼 Select Theme" --width 400 --height 500)
+fi
 
 if [ -z "$SELECTED" ]; then
     exit 0
