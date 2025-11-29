@@ -44,9 +44,24 @@ read -p "Press ENTER to continue..."
 require_internet() {
     echo ""
     echo -e "${YELLOW}→${NC} Checking internet connectivity..."
-    if ping -c 2 archlinux.org &>/dev/null; then
-        echo -e "${GREEN}✓${NC} Internet connection detected"
-        return 0
+
+    # Prefer an HTTP(S) check because ICMP can be blocked on some hypervisors/VMs
+    local urls=("https://archlinux.org" "https://github.com")
+    if command -v curl &>/dev/null; then
+        for url in "${urls[@]}"; do
+            if curl --silent --head --fail --connect-timeout 5 --max-time 10 "$url" >/dev/null; then
+                echo -e "${GREEN}✓${NC} Internet connection detected"
+                return 0
+            fi
+        done
+    fi
+
+    # Fallback to ICMP if HTTP checks are unavailable
+    if command -v ping &>/dev/null; then
+        if ping -c 1 -W 2 archlinux.org &>/dev/null || ping -c 1 -W 2 1.1.1.1 &>/dev/null; then
+            echo -e "${GREEN}✓${NC} Internet connection detected"
+            return 0
+        fi
     fi
 
     echo -e "${RED}✗${NC} No internet connection!"
