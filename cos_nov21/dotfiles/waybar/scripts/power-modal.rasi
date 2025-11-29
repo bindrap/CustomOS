@@ -1,0 +1,43 @@
+/* Power Modal - Centered, large text, no search */
+
+* {
+    background-color: transparent;
+    text-color: #cdd6f4;
+    font: "SF Pro Display 18";
+}
+
+window {
+    width: 500px;
+    location: center;
+    anchor: center;
+    background-color: rgba(17, 17, 27, 0.98);
+    border: 2px;
+    border-color: rgba(137, 180, 250, 0.5);
+    border-radius: 16px;
+    padding: 20px;
+}
+
+inputbar {
+    enabled: false;
+}
+
+listview {
+    lines: 6;
+    spacing: 4px;
+    scrollbar: false;
+}
+
+element {
+    padding: 16px 24px;
+    border-radius: 12px;
+    background-color: transparent;
+}
+
+element selected {
+    background-color: rgba(137, 180, 250, 0.25);
+}
+
+element-text {
+    background-color: transparent;
+    text-color: inherit;
+}

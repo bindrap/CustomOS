@@ -1,0 +1,297 @@
+/* macOS-inspired Waybar Style */
+
+* {
+    font-family: "SF Pro Display", "JetBrainsMono Nerd Font", "Font Awesome 6 Free";
+    font-size: 13px;
+    font-weight: 500;
+    min-height: 0;
+}
+
+window#waybar {
+    background: transparent;
+}
+
+#waybar {
+    background-color: rgba(17, 17, 27, 0.95);
+    border-radius: 0;
+    color: #cdd6f4;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Launcher */
+#custom-launcher {
+    background-color: transparent;
+    color: #cdd6f4;
+    padding: 0 12px;
+    margin: 0 4px;
+    font-size: 15px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#custom-launcher:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+/* Workspaces */
+#workspaces {
+    background-color: transparent;
+    margin: 0 8px;
+    padding: 0 4px;
+}
+
+#workspaces button {
+    color: rgba(205, 214, 244, 0.5);
+    border-radius: 50%;
+    padding: 0 4px;
+    margin: 0 2px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: transparent;
+}
+
+#workspaces button.active {
+    color: #cdd6f4;
+    background-color: rgba(137, 180, 250, 0.3);
+}
+
+#workspaces button.urgent {
+    color: #f38ba8;
+    background-color: rgba(243, 139, 168, 0.2);
+}
+
+#workspaces button:hover {
+    color: #cdd6f4;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Window title */
+#window {
+    background-color: transparent;
+    padding: 0 16px;
+    margin: 0;
+    color: rgba(205, 214, 244, 0.85);
+    font-weight: 500;
+}
+
+/* Clock */
+#clock {
+    background-color: transparent;
+    padding: 0 16px;
+    margin: 0;
+    color: #cdd6f4;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#clock:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+/* Weather */
+#custom-weather {
+    background-color: transparent;
+    padding: 0 12px;
+    margin: 0 8px;
+    color: #cdd6f4;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#custom-weather:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+tooltip#custom-weather {
+    background-color: rgba(17, 17, 27, 0.98);
+    border: 1px solid rgba(137, 180, 250, 0.3);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+tooltip#custom-weather label {
+    font-size: 11px;
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    color: #cdd6f4;
+}
+
+/* CPU */
+#cpu {
+    background-color: transparent;
+    padding: 0 8px;
+    margin: 0 2px;
+    color: #cdd6f4;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#cpu:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+/* Temperature */
+#temperature {
+    background-color: transparent;
+    padding: 0 8px;
+    margin: 0 2px;
+    color: #cdd6f4;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#temperature:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+#temperature.critical {
+    color: #f38ba8;
+}
+
+/* Backlight */
+#backlight {
+    background-color: transparent;
+    padding: 0 8px;
+    margin: 0 2px;
+    color: #cdd6f4;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#backlight:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+/* Battery */
+#battery {
+    background-color: transparent;
+    padding: 0 8px;
+    margin: 0 2px;
+    color: #cdd6f4;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#battery:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+#battery.charging {
+    color: #89b4fa;
+}
+
+#battery.warning:not(.charging) {
+    color: #f9e2af;
+}
+
+#battery.critical:not(.charging) {
+    color: #f38ba8;
+    animation: blink 0.5s linear infinite alternate;
+}
+
+/* Network */
+#network {
+    background-color: transparent;
+    padding: 0 8px;
+    margin: 0 2px;
+    color: #cdd6f4;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#network:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+#network.disconnected {
+    color: rgba(243, 139, 168, 0.7);
+}
+
+/* Bluetooth */
+#bluetooth {
+    background-color: transparent;
+    padding: 0 8px;
+    margin: 0 2px;
+    color: #cdd6f4;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#bluetooth:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+/* Pulseaudio */
+#pulseaudio {
+    background-color: transparent;
+    padding: 0 8px;
+    margin: 0 2px;
+    color: #cdd6f4;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#pulseaudio:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+}
+
+#pulseaudio.muted {
+    color: rgba(243, 139, 168, 0.7);
+}
+
+/* Tray */
+#tray {
+    background-color: transparent;
+    padding: 0 8px;
+    margin: 0 2px;
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+}
+
+/* Power button */
+#custom-power {
+    background-color: transparent;
+    color: #cdd6f4;
+    padding: 0 12px;
+    margin: 0 4px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#custom-power:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+    color: #f38ba8;
+}
+
+/* Blink animation */
+@keyframes blink {
+    to {
+        opacity: 0.5;
+    }
+}

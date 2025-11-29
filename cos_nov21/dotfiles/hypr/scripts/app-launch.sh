@@ -49,10 +49,23 @@ case "$1" in
         run_or_install thunar thunar
         ;;
     nvim)
-        run_or_install nvim neovim
+        if command -v nvim >/dev/null 2>&1; then
+            exec kitty -e nvim ~
+        else
+            local installer
+            installer=$(pick_installer)
+            if [ -n "$installer" ]; then
+                notify_missing "nvim" "neovim"
+                kitty -e bash -lc "$installer neovim" || notify-send "Install neovim" "Installer closed or failed"
+                exec kitty -e nvim ~
+            else
+                notify-send "No installer available" "Install neovim then retry"
+                exit 1
+            fi
+        fi
         ;;
     browser)
-        run_or_install firefox firefox
+        run_or_install brave brave-bin
         ;;
     music)
         run_or_install ncmpcpp ncmpcpp

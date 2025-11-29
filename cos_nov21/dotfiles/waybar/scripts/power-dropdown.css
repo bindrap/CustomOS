@@ -1,0 +1,53 @@
+/* Power Dropdown - Small font, compact, top-right positioning */
+
+window {
+    background-color: rgba(17, 17, 27, 0.98);
+    border: 1px solid rgba(137, 180, 250, 0.4);
+    border-radius: 12px;
+    font-family: "SF Pro Display", "JetBrainsMono Nerd Font";
+}
+
+#input {
+    display: none; /* Hide search bar */
+}
+
+#inner-box {
+    background-color: transparent;
+    padding: 8px;
+}
+
+#outer-box {
+    background-color: transparent;
+    padding: 0;
+}
+
+#scroll {
+    background-color: transparent;
+}
+
+#text {
+    color: #cdd6f4;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 8px 12px;
+}
+
+#entry {
+    background-color: transparent;
+    padding: 6px 12px;
+    margin: 2px 0;
+    border-radius: 8px;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#entry:selected {
+    background-color: rgba(137, 180, 250, 0.25);
+}
+
+#entry:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+#entry:selected:hover {
+    background-color: rgba(137, 180, 250, 0.35);
+}

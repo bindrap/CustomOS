@@ -1,0 +1,45 @@
+/* Power Dropdown - Small compact menu, top-right */
+
+* {
+    background-color: transparent;
+    text-color: #cdd6f4;
+    font: "SF Pro Display 11";
+}
+
+window {
+    width: 200px;
+    location: northeast;
+    anchor: northeast;
+    x-offset: -10px;
+    y-offset: 35px;
+    background-color: rgba(17, 17, 27, 0.98);
+    border: 1px;
+    border-color: rgba(137, 180, 250, 0.4);
+    border-radius: 12px;
+    padding: 8px;
+}
+
+inputbar {
+    enabled: false;
+}
+
+listview {
+    lines: 6;
+    spacing: 2px;
+    scrollbar: false;
+}
+
+element {
+    padding: 6px 12px;
+    border-radius: 8px;
+    background-color: transparent;
+}
+
+element selected {
+    background-color: rgba(137, 180, 250, 0.25);
+}
+
+element-text {
+    background-color: transparent;
+    text-color: inherit;
+}

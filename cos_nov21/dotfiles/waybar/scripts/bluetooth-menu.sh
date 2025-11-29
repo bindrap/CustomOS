@@ -1,109 +1,104 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
 
-prompt_picker() {
-    local prompt="$1"
+# Bluetooth picker with quick drop-down + full connect/pair
+THEME="$HOME/.config/waybar/styles/popup.rasi"
+ROFI_FLAGS=(-dmenu -i -theme "$THEME" -location 3 -yoffset 36 -xoffset -6 -width 38)
+MODE="${1:-full}" # full | quick
 
-    if command -v wofi >/dev/null 2>&1; then
-        wofi --show dmenu --prompt "$prompt" --allow-markup --width 420
-    elif command -v rofi >/dev/null 2>&1; then
-        rofi -dmenu -p "$prompt" -theme-str 'window {width: 46%;}'
+power_state=$(bluetoothctl show | awk -F': ' '/Powered/ {print $2}')
+
+entries=()
+actions=()
+
+add_entry() {
+    entries+=("$1")
+    actions+=("$2")
+}
+
+toggle_label() {
+    if [ "$power_state" = "yes" ]; then
+        echo "󰂲  Turn Bluetooth off"
     else
-        echo "No wofi/rofi menu found" >&2
-        exit 1
+        echo "󰂯  Turn Bluetooth on"
     fi
 }
 
-ensure_powered_on() {
-    if bluetoothctl show | grep -q "Powered: yes"; then
-        return
+add_entry "$(toggle_label)" "toggle_power"
+[ "$MODE" = "full" ] && add_entry "󰂞  Open Blueman" "open_manager"
+
+if [ "$power_state" = "yes" ]; then
+    # Quick scan for available devices (skip in quick mode if not desired)
+    if [ "$MODE" = "full" ]; then
+        bluetoothctl --timeout 3 scan on &>/dev/null &
+        sleep 1
     fi
 
-    bluetoothctl power on >/dev/null 2>&1 || true
-}
+    paired=$(bluetoothctl paired-devices)
+    devices=$(bluetoothctl devices)
+    any_device=false
 
-list_devices() {
-    bluetoothctl devices | while IFS= read -r line; do
-        [[ -z "$line" ]] && continue
-        # Format: Device AA:BB:CC:DD:EE:FF Name
-        address=$(awk '{print $2}' <<<"$line")
-        name=${line#*${address} }
-        [[ -z "$name" ]] && name="$address"
+    while IFS= read -r line; do
+        [ -z "$line" ] && continue
+        mac=$(echo "$line" | awk '{print $2}')
+        name=$(echo "$line" | awk '{print substr($0, index($0,$3))}')
 
-        info=$(bluetoothctl info "$address")
-        connected=$(grep -q "Connected: yes" <<<"$info" && echo "yes" || echo "no")
-        paired=$(grep -q "Paired: yes" <<<"$info" && echo "yes" || echo "no")
+        info=$(bluetoothctl info "$mac")
+        connected=$(echo "$info" | awk -F': ' '/Connected/ {print $2}')
+        is_paired="no"
+        echo "$paired" | grep -q "$mac" && is_paired="yes"
 
-        printf "%s|%s|%s|%s\n" "$address" "$name" "$connected" "$paired"
-    done
-}
+        if [ "$connected" = "yes" ]; then
+            label="✓ $name (connected)"
+        elif [ "$is_paired" = "yes" ]; then
+            label="  $name (paired)"
+        else
+            [ "$MODE" = "quick" ] && continue
+            label="+ $name (available)"
+        fi
 
-connect_device() {
-    local address="$1" name="$2" paired="$3"
+        add_entry "$label" "device::$mac::$is_paired::$connected"
+        any_device=true
+    done <<< "$devices"
 
-    ensure_powered_on
+    $any_device || add_entry "No devices found" "noop"
+else
+    add_entry "Bluetooth is off" "noop"
+fi
 
-    if [[ "$paired" != "yes" ]]; then
-        bluetoothctl pair "$address" >/dev/null 2>&1 || true
-        bluetoothctl trust "$address" >/dev/null 2>&1 || true
-    fi
+choice=$(printf '%s\n' "${entries[@]}" | rofi "${ROFI_FLAGS[@]}" -p "󰂯  Bluetooth" -format i)
+rofi_exit=$?
+[ "$rofi_exit" -ne 0 ] && exit 0
+[ -z "$choice" ] && exit 0
 
-    if bluetoothctl connect "$address" >/dev/null 2>&1; then
-        notify-send "Bluetooth" "Connected to $name" -u low
-    else
-        notify-send "Bluetooth" "Failed to connect to $name" -u normal
-    fi
-}
+selected_action="${actions[$choice]}"
 
-disconnect_device() {
-    local address="$1" name="$2"
-    if bluetoothctl disconnect "$address" >/dev/null 2>&1; then
-        notify-send "Bluetooth" "Disconnected from $name" -u low
-    else
-        notify-send "Bluetooth" "Failed to disconnect $name" -u normal
-    fi
-}
+case "$selected_action" in
+    toggle_power)
+        if [ "$power_state" = "yes" ]; then
+            bluetoothctl power off
+        else
+            bluetoothctl power on
+        fi
+        ;;
+    open_manager)
+        blueman-manager &
+        ;;
+    device::*)
+        IFS='::' read -r _ mac is_paired connected <<< "$selected_action"
+        [ -z "$mac" ] && exit 0
 
-main() {
-    if ! command -v bluetoothctl >/dev/null 2>&1; then
-        notify-send "Bluetooth" "bluetoothctl is not available" -u critical
-        exit 1
-    fi
+        if [ "$connected" = "yes" ]; then
+            bluetoothctl disconnect "$mac"
+        else
+            if [ "$is_paired" = "yes" ]; then
+                bluetoothctl connect "$mac"
+            else
+                bluetoothctl pair "$mac" && bluetoothctl connect "$mac"
+            fi
+        fi
+        ;;
+    *)
+        ;;
+esac
 
-    ensure_powered_on
-
-    mapfile -t devices < <(list_devices)
-    if [[ ${#devices[@]} -eq 0 ]]; then
-        notify-send "Bluetooth" "No devices found" -u low
-        exit 0
-    fi
-
-    choices=()
-    for i in "${!devices[@]}"; do
-        IFS='|' read -r addr name connected paired <<<"${devices[$i]}"
-        marker=""
-        [[ "$connected" == "yes" ]] && marker=" (connected)"
-        [[ "$paired" != "yes" ]] && marker="$marker (new)"
-        choices+=("$(printf "%02d | %s%s" "$((i+1))" "$name" "$marker")")
-    done
-
-    selection=$(printf "%s\n" "${choices[@]}" | prompt_picker "Bluetooth")
-    [[ -z "$selection" ]] && exit 0
-
-    index=$(cut -d'|' -f1 <<<"$selection" | tr -d ' ')
-    if ! [[ "$index" =~ ^[0-9]+$ ]]; then
-        exit 1
-    fi
-    index=$((index-1))
-    [[ $index -lt 0 || $index -ge ${#devices[@]} ]] && exit 1
-
-    IFS='|' read -r addr name connected paired <<<"${devices[$index]}"
-
-    if [[ "$connected" == "yes" ]]; then
-        disconnect_device "$addr" "$name"
-    else
-        connect_device "$addr" "$name" "$paired"
-    fi
-}
-
-main "$@"
+exit 0

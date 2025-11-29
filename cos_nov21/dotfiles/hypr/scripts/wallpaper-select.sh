@@ -1,5 +1,5 @@
 #!/bin/bash
-# Interactive wallpaper selector with preview - Hyde Style
+# Interactive wallpaper selector with grid layout - Frosted Glass Design
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/wallpaper-lib.sh"
@@ -28,45 +28,49 @@ format_wallpaper_label() {
         esac
     done
 
-    echo "$shortened"
+    # Get just the filename without extension for cleaner display
+    basename "$shortened" | sed 's/\.[^.]*$//'
 }
 
-# Create menu entries with deterministic indices so selection always resolves
+# Create menu entries for rofi with images
 MENU_ENTRIES=""
 CURRENT_WALLPAPER=$(get_current_wallpaper)
 for i in "${!WALLPAPER_LIST[@]}"; do
     wallpaper="${WALLPAPER_LIST[$i]}"
-    marker="  "
-    [ "$wallpaper" = "$CURRENT_WALLPAPER" ] && marker="● "
-
-    MENU_ENTRIES+="$i||$marker$(format_wallpaper_label "$wallpaper")\n"
+    label=$(format_wallpaper_label "$wallpaper")
+    
+    # Add marker for current wallpaper
+    if [ "$wallpaper" = "$CURRENT_WALLPAPER" ]; then
+        label="● $label"
+    fi
+    
+    # Format: index||label for parsing later
+    MENU_ENTRIES+="$i||$label\n"
 done
 
-# Show menu and get selection (prefer rofi, fallback to wofi)
-if command -v rofi >/dev/null 2>&1; then
-    # Rofi supports image previews via icon attributes
-    SELECTED=$(printf "%b" "$MENU_ENTRIES" | while IFS= read -r line; do
-        idx="${line%%||*}"
-        label="${line#*||}"
-        wp_path="${WALLPAPER_LIST[$idx]}"
-        printf "%s\0icon\x1f%s\n" "$line" "$wp_path"
-    done | rofi -dmenu -i -p "󰸉 Select Wallpaper" -show-icons -theme-str 'window {width: 780px;} listview {lines: 12;}' )
-else
-    # Wofi renders inline previews when --allow-images is set and entries start with img:
-    SELECTED=$(printf "%b" "$MENU_ENTRIES" | while IFS= read -r line; do
-        idx="${line%%||*}"
-        wp_path="${WALLPAPER_LIST[$idx]}"
-        printf "img:%s\t%s\n" "$wp_path" "$line"
-    done | wofi --dmenu --prompt "󰸉 Select Wallpaper" --width 780 --height 460 --allow-images)
-fi
+# Show rofi with grid layout
+SELECTED=$(printf "%b" "$MENU_ENTRIES" | while IFS= read -r line; do
+    idx="${line%%||*}"
+    label="${line#*||}"
+    wp_path="${WALLPAPER_LIST[$idx]}"
+    # Rofi format: label \0icon\x1f path
+    printf "%s\0icon\x1f%s\n" "$label" "$wp_path"
+done | rofi -dmenu -i -p "󰸉  Wallpaper" \
+    -theme ~/.config/rofi/wallpaper.rasi \
+    -show-icons)
 
 if [ -z "$SELECTED" ]; then
     exit 0
 fi
 
-# Resolve selection via stable index prefix (format: index||label)
-SELECTED_INDEX=$(echo "$SELECTED" | cut -d '|' -f1)
+# Extract index from selection (remove marker if present)
+SELECTED_CLEAN=$(echo "$SELECTED" | sed 's/^● //')
 
-if [[ "$SELECTED_INDEX" =~ ^[0-9]+$ ]] && [ "$SELECTED_INDEX" -lt ${#WALLPAPER_LIST[@]} ]; then
-    set_wallpaper "${WALLPAPER_LIST[$SELECTED_INDEX]}"
-fi
+# Find matching wallpaper
+for i in "${!WALLPAPER_LIST[@]}"; do
+    label=$(format_wallpaper_label "${WALLPAPER_LIST[$i]}")
+    if [ "$label" = "$SELECTED_CLEAN" ] || [ "● $label" = "$SELECTED" ]; then
+        set_wallpaper "${WALLPAPER_LIST[$i]}"
+        exit 0
+    fi
+done

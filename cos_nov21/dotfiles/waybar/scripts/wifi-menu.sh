@@ -1,116 +1,117 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/bash
 
-prompt_picker() {
-    local prompt="$1"
+# Wi-Fi picker with quick menu + full search/connect/forget
+THEME="$HOME/.config/waybar/styles/popup.rasi"
+ROFI_FLAGS=(-dmenu -i -theme "$THEME" -location 3 -yoffset 36 -xoffset -6 -width 36)
+MODE="${1:-full}" # full | quick
 
-    if command -v wofi >/dev/null 2>&1; then
-        wofi --show dmenu --prompt "$prompt" --allow-markup --width 400
-    elif command -v rofi >/dev/null 2>&1; then
-        rofi -dmenu -p "$prompt" -theme-str 'window {width: 44%;}'
+wifi_iface=$(nmcli -t -f DEVICE,TYPE device status | awk -F: '$2=="wifi"{print $1; exit}')
+wifi_state=$(nmcli radio wifi)
+current_ssid=$(nmcli -t -f ACTIVE,SSID dev wifi list | awk -F: '$1=="yes"{print $2; exit}')
+current_conn=$(nmcli -t -f NAME,TYPE connection show --active | awk -F: '$2=="802-11-wireless"{print $1; exit}')
+
+entries=()
+actions=()
+
+add_entry() {
+    entries+=("$1")
+    actions+=("$2")
+}
+
+toggle_label() {
+    if [ "$wifi_state" = "enabled" ]; then
+        echo "󰤭  Turn Wi-Fi off"
     else
-        echo "No wofi/rofi menu found" >&2
-        exit 1
+        echo "󰤨  Turn Wi-Fi on"
     fi
 }
 
-prompt_text() {
-    local prompt="$1"
+# Quick actions first
+add_entry "$(toggle_label)" "toggle"
+if [ "$wifi_state" = "enabled" ] && [ -n "$current_ssid" ]; then
+    add_entry "󰣈  Disconnect from $current_ssid" "disconnect"
+    add_entry "󰙧  Forget $current_ssid" "forget"
+fi
+add_entry "⟳  Rescan" "rescan"
+[ "$MODE" = "full" ] && add_entry "󰈹  Launch nm-connection-editor" "open_editor"
 
-    if command -v wofi >/dev/null 2>&1; then
-        wofi --dmenu --prompt "$prompt" --password --width 400
-    else
-        rofi -dmenu -password -p "$prompt" -theme-str 'window {width: 44%;}'
-    fi
-}
+# Populate networks when Wi-Fi is on
+if [ "$wifi_state" = "enabled" ]; then
+    network_added=false
+    networks=$(nmcli -t -f ACTIVE,SSID,SECURITY,SIGNAL device wifi list | sort -t: -k4 -nr)
+    while IFS=: read -r active ssid security signal; do
+        [ -z "$ssid" ] && continue
+        [ "$ssid" = "--" ] && continue
 
-signal_icon() {
-    local strength=${1:-0}
-    if (( strength >= 80 )); then
-        printf '󰤨'
-    elif (( strength >= 60 )); then
-        printf '󰤥'
-    elif (( strength >= 40 )); then
-        printf '󰤢'
-    elif (( strength >= 20 )); then
-        printf '󰤟'
-    else
-        printf '󰤯'
-    fi
-}
+        # Strength icon
+        if [ "$signal" -ge 75 ]; then
+            icon="󰤨"
+        elif [ "$signal" -ge 50 ]; then
+            icon="󰤥"
+        elif [ "$signal" -ge 25 ]; then
+            icon="󰤢"
+        else
+            icon="󰤟"
+        fi
 
-list_networks() {
-    nmcli -t -f IN-USE,SSID,SECURITY,SIGNAL device wifi list --rescan yes 2>/dev/null | sed '/^$/d'
-}
+        [ -n "$security" ] && lock=" 󰌾" || lock=""
+        status=""
+        [ "$active" = "yes" ] && status="  (connected)"
 
-connect_network() {
-    local ssid="$1"
-    local security="$2"
+        entries+=("$icon  $ssid$lock$status")
+        ssid_b64=$(printf '%s' "$ssid" | base64 -w0)
+        secured="no"
+        [ -n "$security" ] && secured="yes"
+        actions+=("connect::$ssid_b64::$secured")
+        network_added=true
+    done <<< "$networks"
 
-    if nmcli -g name connection show | grep -Fxq "$ssid"; then
-        nmcli connection up "$ssid"
-        return
-    fi
+    $network_added || add_entry "󰤪  No networks found" "noop"
+fi
 
-    if nmcli device wifi connect "$ssid" 2>/tmp/wifi-error.log; then
-        rm -f /tmp/wifi-error.log
-        return
-    fi
+choice=$(printf '%s\n' "${entries[@]}" | rofi "${ROFI_FLAGS[@]}" -p "󰤨  Wi-Fi" -format i)
+rofi_exit=$?
+[ "$rofi_exit" -ne 0 ] && exit 0
+[ -z "$choice" ] && exit 0
 
-    if grep -q "No network with SSID" /tmp/wifi-error.log 2>/dev/null; then
-        notify-send "Wi-Fi" "Network '$ssid' not found" -u normal
-        rm -f /tmp/wifi-error.log
-        exit 1
-    fi
+selected_action="${actions[$choice]}"
 
-    rm -f /tmp/wifi-error.log
+case "$selected_action" in
+    toggle)
+        if [ "$wifi_state" = "enabled" ]; then
+            nmcli radio wifi off
+        else
+            nmcli radio wifi on
+        fi
+        ;;
+    disconnect)
+        [ -n "$wifi_iface" ] && nmcli device disconnect "$wifi_iface"
+        ;;
+    forget)
+        [ -n "$current_conn" ] && nmcli connection delete "$current_conn"
+        ;;
+    rescan)
+        nmcli device wifi rescan
+        exec "$0" "$MODE"
+        ;;
+    open_editor)
+        nm-connection-editor &
+        ;;
+    connect::*)
+        IFS='::' read -r _ encoded_ssid secured <<< "$selected_action"
+        ssid=$(printf '%s' "$encoded_ssid" | base64 -d 2>/dev/null)
+        [ -z "$ssid" ] && exit 0
 
-    if [[ "$security" != "--" && "$security" != "" ]]; then
-        password=$(prompt_text "Password for $ssid")
-        [[ -z "$password" ]] && exit 0
-        nmcli device wifi connect "$ssid" password "$password"
-    else
-        nmcli device wifi connect "$ssid"
-    fi
-}
+        if [ "$secured" = "yes" ]; then
+            password=$(rofi -dmenu -password -p "Password for $ssid" "${ROFI_FLAGS[@]}")
+            [ -z "$password" ] && exit 0
+            nmcli device wifi connect "$ssid" password "$password"
+        else
+            nmcli device wifi connect "$ssid"
+        fi
+        ;;
+    *)
+        ;;
+esac
 
-main() {
-    if ! command -v nmcli >/dev/null 2>&1; then
-        notify-send "Wi-Fi" "NetworkManager is not available" -u critical
-        exit 1
-    fi
-
-    mapfile -t networks < <(list_networks)
-    if [[ ${#networks[@]} -eq 0 ]]; then
-        notify-send "Wi-Fi" "No networks found" -u low
-        exit 0
-    fi
-
-    choices=()
-    for i in "${!networks[@]}"; do
-        IFS=':' read -r inuse ssid security signal <<<"${networks[$i]}"
-        [[ -z "$ssid" ]] && ssid="<hidden>"
-        label_sec="$security"
-        [[ -z "$label_sec" || "$label_sec" == "--" ]] && label_sec="Open"
-        icon=$(signal_icon "$signal")
-        marker=""
-        [[ "$inuse" == "*" ]] && marker=" ★"
-        choices+=("$(printf "%02d | %s %s [%s] %s%%%s" "$((i+1))" "$icon" "$ssid" "$label_sec" "$signal" "$marker")")
-    done
-
-    selection=$(printf "%s\n" "${choices[@]}" | prompt_picker "Wi-Fi")
-    [[ -z "$selection" ]] && exit 0
-
-    index=$(cut -d'|' -f1 <<<"$selection" | tr -d ' ')
-    if ! [[ "$index" =~ ^[0-9]+$ ]]; then
-        exit 1
-    fi
-    index=$((index-1))
-    [[ $index -lt 0 || $index -ge ${#networks[@]} ]] && exit 1
-
-    IFS=':' read -r _ ssid security _ <<<"${networks[$index]}"
-    connect_network "$ssid" "$security"
-    notify-send "Wi-Fi" "Connecting to $ssid" -u low
-}
-
-main "$@"
+exit 0

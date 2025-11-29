@@ -1,0 +1,79 @@
+/* Frosted Glass Wallpaper Selector - Grid Layout */
+configuration {
+    show-icons: true;
+    icon-theme: "Papirus-Dark";
+    display-drun: "";
+    drun-display-format: "{name}";
+    disable-history: false;
+    click-to-exit: true;
+}
+
+* {
+    bg: rgba(17, 17, 27, 0.7);
+    bg-alt: rgba(30, 30, 46, 0.6);
+    fg: #cdd6f4;
+    fg-alt: #89b4fa;
+    
+    border: 0;
+    margin: 0;
+    padding: 0;
+    spacing: 0;
+    
+    background-color: transparent;
+    text-color: @fg;
+}
+
+window {
+    background-color: @bg;
+    border: 1px;
+    border-color: rgba(137, 180, 250, 0.4);
+    border-radius: 16px;
+    width: 60%;
+    padding: 20px;
+}
+
+mainbox {
+    children: [listview];
+    spacing: 20px;
+}
+
+listview {
+    columns: 3;
+    lines: 2;
+    spacing: 16px;
+    cycle: true;
+    dynamic: true;
+    layout: vertical;
+}
+
+element {
+    orientation: vertical;
+    border-radius: 12px;
+    padding: 12px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+element selected {
+    background-color: rgba(137, 180, 250, 0.25);
+    border: 2px;
+    border-color: rgba(137, 180, 250, 0.7);
+}
+
+element-icon {
+    size: 200px;
+    margin: 0 0 10px 0;
+    border-radius: 8px;
+}
+
+element-text {
+    horizontal-align: 0.5;
+    vertical-align: 0.5;
+    font: "JetBrainsMono Nerd Font 12";
+}
+
+element selected element-text {
+    text-color: @fg-alt;
+    font: "JetBrainsMono Nerd Font Bold 12";
+}

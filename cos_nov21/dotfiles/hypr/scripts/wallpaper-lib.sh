@@ -74,9 +74,17 @@ set_wallpaper() {
 
     # Try swww first (with fancy transitions)
     if command -v swww >/dev/null 2>&1; then
+        # Get screen center for raindrop effect
+        local screen_info=$(hyprctl monitors -j 2>/dev/null | grep -o '"width":[0-9]*,"height":[0-9]*' | head -1)
+        local width=$(echo "$screen_info" | grep -o '"width":[0-9]*' | cut -d: -f2)
+        local height=$(echo "$screen_info" | grep -o '"height":[0-9]*' | cut -d: -f2)
+        local center_x=$((width / 2))
+        local center_y=$((height / 2))
+        local transition_pos="${center_x:-960},${center_y:-540}"
+
         swww img "$WALLPAPER" \
             --transition-type grow \
-            --transition-pos "$(hyprctl cursorpos 2>/dev/null || echo '0,0')" \
+            --transition-pos "$transition_pos" \
             --transition-fps 60 \
             --transition-duration 0.8
     # Fallback to swaybg

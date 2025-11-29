@@ -1,0 +1,12 @@
+width=280
+height=400
+insensitive=true
+prompt=
+allow_markup=true
+no_actions=true
+halign=fill
+orientation=vertical
+content_halign=fill
+show=dmenu
+gtk_dark=true
+layer=overlay

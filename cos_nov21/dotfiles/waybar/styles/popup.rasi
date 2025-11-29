@@ -1,0 +1,50 @@
+/* Minimal translucent menu for Wi-Fi/Bluetooth */
+
+* {
+    background-color: transparent;
+    text-color: #e8ecf4;
+    font: "SF Pro Display 14";
+}
+
+window {
+    width: 420px;
+    background-color: rgba(8, 10, 16, 0.9);
+    border: 1px 1px 1px 1px;
+    border-color: rgba(255, 255, 255, 0.07);
+    padding: 14px;
+}
+
+inputbar {
+    margin: 0 0 8px 0;
+    padding: 10px 12px;
+    background-color: rgba(255, 255, 255, 0.05);
+    text-color: #e8ecf4;
+    font: "SF Pro Display 13";
+}
+
+prompt {
+    padding: 0 8px 0 0;
+}
+
+listview {
+    lines: 10;
+    spacing: 6px;
+    scrollbar: false;
+}
+
+element {
+    padding: 10px 12px;
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+element selected {
+    background-color: rgba(0, 180, 255, 0.18);
+    border: 1px 1px 1px 1px;
+    border-color: rgba(0, 180, 255, 0.35);
+}
+
+element-text {
+    background-color: transparent;
+    text-color: inherit;
+    padding: 0 2px;
+}

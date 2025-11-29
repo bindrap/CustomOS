@@ -1,0 +1,66 @@
+/* Frosted Glass Network Menu */
+configuration {
+    show-icons: false;
+    click-to-exit: true;
+}
+
+* {
+    bg: rgba(17, 17, 27, 0.7);
+    bg-alt: rgba(30, 30, 46, 0.6);
+    fg: #cdd6f4;
+    fg-alt: #89b4fa;
+    
+    border: 0;
+    margin: 0;
+    padding: 0;
+    spacing: 0;
+    
+    background-color: transparent;
+    text-color: @fg;
+}
+
+window {
+    background-color: @bg;
+    border: 1px;
+    border-color: rgba(137, 180, 250, 0.4);
+    border-radius: 12px;
+    width: 320px;
+    location: north east;
+    x-offset: -10;
+    y-offset: 35;
+    padding: 12px;
+}
+
+mainbox {
+    children: [listview];
+    spacing: 12px;
+}
+
+listview {
+    lines: 8;
+    spacing: 4px;
+    cycle: true;
+    dynamic: true;
+}
+
+element {
+    border-radius: 6px;
+    padding: 8px 12px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px;
+    border-color: transparent;
+}
+
+element selected {
+    background-color: rgba(137, 180, 250, 0.25);
+    border-color: rgba(137, 180, 250, 0.6);
+}
+
+element-text {
+    font: "JetBrainsMono Nerd Font 12";
+}
+
+element selected element-text {
+    text-color: @fg-alt;
+    font: "JetBrainsMono Nerd Font Bold 12";
+}

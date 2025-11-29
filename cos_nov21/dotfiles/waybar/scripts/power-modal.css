@@ -1,0 +1,54 @@
+/* Power Modal - Centered, larger text, no search */
+
+window {
+    background-color: rgba(17, 17, 27, 0.98);
+    border: 2px solid rgba(137, 180, 250, 0.5);
+    border-radius: 16px;
+    font-family: "SF Pro Display", "JetBrainsMono Nerd Font";
+}
+
+#input {
+    display: none; /* Hide search bar */
+}
+
+#inner-box {
+    background-color: transparent;
+    padding: 20px;
+}
+
+#outer-box {
+    background-color: transparent;
+    padding: 0;
+}
+
+#scroll {
+    background-color: transparent;
+}
+
+#text {
+    color: #cdd6f4;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 16px 24px;
+}
+
+#entry {
+    background-color: transparent;
+    padding: 12px 20px;
+    margin: 4px 0;
+    border-radius: 12px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#entry:selected {
+    background-color: rgba(137, 180, 250, 0.25);
+    box-shadow: 0 0 20px rgba(137, 180, 250, 0.15);
+}
+
+#entry:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+#entry:selected:hover {
+    background-color: rgba(137, 180, 250, 0.35);
+}
