@@ -41,18 +41,20 @@ echo ""
 read -p "Press ENTER to continue..."
 
 # Check internet
-echo ""
-echo -e "${YELLOW}→${NC} Checking internet connectivity..."
-if ping -c 2 archlinux.org &>/dev/null; then
-    echo -e "${GREEN}✓${NC} Internet connection detected"
-else
-    echo -e "${RED}✗${NC} No internet connection!"
-    echo -e "${YELLOW}Warning:${NC} Internet required for HyDE installation."
-    read -p "Continue anyway? (yes/no): " CONTINUE_OFFLINE
-    if [ "$CONTINUE_OFFLINE" != "yes" ]; then
-        exit 0
+require_internet() {
+    echo ""
+    echo -e "${YELLOW}→${NC} Checking internet connectivity..."
+    if ping -c 2 archlinux.org &>/dev/null; then
+        echo -e "${GREEN}✓${NC} Internet connection detected"
+        return 0
     fi
-fi
+
+    echo -e "${RED}✗${NC} No internet connection!"
+    echo -e "${YELLOW}HyDE and Chaotic-AUR installs require internet. Please connect and rerun.${NC}"
+    exit 1
+}
+
+require_internet
 
 # Update system
 echo ""
@@ -62,6 +64,8 @@ sudo pacman -Syu --noconfirm
 echo ""
 echo -e "${YELLOW}→${NC} Installing HyDE build prerequisites (git, base-devel)..."
 sudo pacman -S --needed --noconfirm git base-devel
+
+require_internet
 
 echo ""
 echo -e "${YELLOW}→${NC} Fetching HyDE repository..."
@@ -86,6 +90,7 @@ echo ""
 echo -e "${YELLOW}→${NC} Optional: run hydevm helper for VM testing and development?${NC}"
 read -p "Type 'yes' to run hydevm (recommended for Arch VMs): " RUN_HYDEVM
 if [ "$RUN_HYDEVM" == "yes" ]; then
+    require_internet
     echo -e "${BLUE}Downloading hydevm utility...${NC}"
     curl -L https://raw.githubusercontent.com/HyDE-Project/HyDE/main/Scripts/hydevm/hydevm.sh -o hydevm
     chmod +x hydevm
