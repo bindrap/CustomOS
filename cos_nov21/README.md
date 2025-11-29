@@ -1,5 +1,7 @@
 # CustomOS Nov21 - Simplified Hyprland ISO
 
+> **HyDE transition:** The Nov21 flow now installs the upstream HyDE desktop environment directly. The old dotfile-sync workflow (local `dotfiles/`, rsync push/pull, VM verification) is no longer used. HyDE manages configuration during installation, so skip dotfile transfers when using this profile.
+
 CustomOS Nov21 is a streamlined, easy-to-customize Arch Linux ISO featuring Hyprland window manager. All configuration files are pre-built and easily editable before ISO creation.
 
 ## Philosophy: Simple & Editable
