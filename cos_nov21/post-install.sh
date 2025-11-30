@@ -92,6 +92,17 @@ echo ""
 echo -e "${YELLOW}→${NC} Installing HyDE build prerequisites (git, base-devel)..."
 sudo pacman -S --needed --noconfirm git base-devel
 
+# Address common HyDE dependency warnings seen during install
+# (e.g., qt5-base, mangohud, hyprpicker). These packages are
+# lightweight and safe to re-install, so keep them idempotent.
+echo ""
+echo -e "${YELLOW}→${NC} Installing HyDE runtime dependencies..."
+sudo pacman -S --needed --noconfirm \
+    qt5-base \
+    qt5-wayland \
+    mangohud \
+    hyprpicker
+
 require_internet
 
 # Pre-seed Chaotic-AUR keyring with resilient keyserver fallbacks to avoid

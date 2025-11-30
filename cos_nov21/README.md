@@ -38,6 +38,8 @@ chmod +x post-install.sh
 
 > Tip: If you already have this repo on the installed system (e.g., copied from the ISO), you can simply `cd /path/to/cos_nov21` and run `./post-install.sh` again. The script is idempotent and will refresh HyDE/Chaotic-AUR if needed.
 
+> Missing dependency warnings (e.g., `qt5-base`, `mangohud`, `hyprpicker`) during HyDE setup are now auto-installed by `post-install.sh`. If you saw those messages in a previous run, just rerun `./post-install.sh` and it will pull in the packages before invoking the HyDE installer.
+
 ### 2. Test in QEMU
 
 ```bash
