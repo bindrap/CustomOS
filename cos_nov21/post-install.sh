@@ -105,18 +105,12 @@ setup_chaotic_repo() {
         "hkps://keys.openpgp.org"
         "hkp://keyserver.ubuntu.com:80"
     )
+    local keyring_url_primary="https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-keyring.pkg.tar.zst"
+    local mirrorlist_url_primary="https://cdn-mirror.chaotic.cx/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst"
+    local keyring_url_backup="https://repo.kitsuna.net/chaotic-aur/chaotic-keyring.pkg.tar.zst"
+    local mirrorlist_url_backup="https://repo.kitsuna.net/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst"
 
-    if grep -q "^\[chaotic-aur\]" /etc/pacman.conf; then
-        echo -e "${BLUE}Chaotic-AUR repo already present, ensuring keyring is installed...${NC}"
-    else
-        echo -e "${YELLOW}→${NC} Adding Chaotic-AUR repository..."
-        sudo tee -a /etc/pacman.conf >/dev/null <<'EOF_CHAOTIC'
-[chaotic-aur]
-Include = /etc/pacman.d/chaotic-mirrorlist
-EOF_CHAOTIC
-    fi
-
-    echo -e "${YELLOW}→${NC} Installing Chaotic-AUR mirrorlist/keyring prerequisites..."
+    echo -e "${YELLOW}→${NC} Installing Chaotic-AUR prerequisites (keyring tools)..."
     sudo pacman -Sy --noconfirm --needed archlinux-keyring gnupg dirmngr
 
     echo -e "${YELLOW}→${NC} Importing Chaotic-AUR signing key with fallbacks..."
@@ -136,22 +130,39 @@ EOF_CHAOTIC
 
     sudo pacman-key --lsign-key "$key_id"
 
-    echo -e "${YELLOW}→${NC} Installing Chaotic-AUR keyring and mirrorlist (will retry on slow links)..."
+    echo -e "${YELLOW}→${NC} Installing Chaotic-AUR keyring and mirrorlist directly (avoids repo sync failures)...${NC}"
     local retries=3
     local wait_time=5
     for attempt in $(seq 1 "$retries"); do
-        if sudo pacman -S --noconfirm --needed chaotic-keyring chaotic-mirrorlist; then
+        echo -e "${BLUE}Download/install attempt ${attempt}/${retries}...${NC}"
+        if sudo pacman -U --noconfirm --needed \
+            "$keyring_url_primary" "$mirrorlist_url_primary" \
+            || sudo pacman -U --noconfirm --needed \
+                "$keyring_url_backup" "$mirrorlist_url_backup"; then
             echo -e "${GREEN}✓${NC} Chaotic-AUR keyring/mirrorlist installed"
-            return 0
+            break
         fi
+
         if [ "$attempt" -lt "$retries" ]; then
-            echo -e "${YELLOW}Install failed, waiting ${wait_time}s before retry ${attempt}/${retries}...${NC}"
+            echo -e "${YELLOW}Install failed, waiting ${wait_time}s before retry...${NC}"
             sleep "$wait_time"
+        else
+            echo -e "${RED}Chaotic-AUR keyring/mirrorlist installation failed after retries. Please try again.${NC}"
+            exit 1
         fi
     done
 
-    echo -e "${RED}Chaotic-AUR keyring/mirrorlist installation failed after retries. Please try again.${NC}"
-    exit 1
+    if grep -q "^\[chaotic-aur\]" /etc/pacman.conf; then
+        echo -e "${BLUE}Chaotic-AUR repo already present. Refreshing package databases...${NC}"
+    else
+        echo -e "${YELLOW}→${NC} Adding Chaotic-AUR repository..."
+        sudo tee -a /etc/pacman.conf >/dev/null <<'EOF_CHAOTIC'
+[chaotic-aur]
+Include = /etc/pacman.d/chaotic-mirrorlist
+EOF_CHAOTIC
+    fi
+
+    sudo pacman -Sy --noconfirm
 }
 
 setup_chaotic_repo
