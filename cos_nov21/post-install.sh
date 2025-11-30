@@ -94,6 +94,68 @@ sudo pacman -S --needed --noconfirm git base-devel
 
 require_internet
 
+# Pre-seed Chaotic-AUR keyring with resilient keyserver fallbacks to avoid
+# "no internet" failures during HyDE install (common in VMs where the first
+# keyserver hit times out). If Chaotic-AUR is already configured, this step is
+# skipped.
+setup_chaotic_repo() {
+    local key_id="3056513887B78AEB"
+    local keyservers=(
+        "hkps://keyserver.ubuntu.com"
+        "hkps://keys.openpgp.org"
+        "hkp://keyserver.ubuntu.com:80"
+    )
+
+    if grep -q "^\[chaotic-aur\]" /etc/pacman.conf; then
+        echo -e "${BLUE}Chaotic-AUR repo already present, ensuring keyring is installed...${NC}"
+    else
+        echo -e "${YELLOW}→${NC} Adding Chaotic-AUR repository..."
+        sudo tee -a /etc/pacman.conf >/dev/null <<'EOF_CHAOTIC'
+[chaotic-aur]
+Include = /etc/pacman.d/chaotic-mirrorlist
+EOF_CHAOTIC
+    fi
+
+    echo -e "${YELLOW}→${NC} Installing Chaotic-AUR mirrorlist/keyring prerequisites..."
+    sudo pacman -Sy --noconfirm --needed archlinux-keyring gnupg dirmngr
+
+    echo -e "${YELLOW}→${NC} Importing Chaotic-AUR signing key with fallbacks..."
+    local imported=false
+    for ks in "${keyservers[@]}"; do
+        echo -e "${BLUE}Trying keyserver: ${ks}${NC}"
+        if sudo pacman-key --keyserver "$ks" --recv-key "$key_id"; then
+            imported=true
+            break
+        fi
+    done
+
+    if ! $imported; then
+        echo -e "${RED}Failed to import Chaotic-AUR key. Please check connectivity and rerun.${NC}"
+        exit 1
+    fi
+
+    sudo pacman-key --lsign-key "$key_id"
+
+    echo -e "${YELLOW}→${NC} Installing Chaotic-AUR keyring and mirrorlist (will retry on slow links)..."
+    local retries=3
+    local wait_time=5
+    for attempt in $(seq 1 "$retries"); do
+        if sudo pacman -S --noconfirm --needed chaotic-keyring chaotic-mirrorlist; then
+            echo -e "${GREEN}✓${NC} Chaotic-AUR keyring/mirrorlist installed"
+            return 0
+        fi
+        if [ "$attempt" -lt "$retries" ]; then
+            echo -e "${YELLOW}Install failed, waiting ${wait_time}s before retry ${attempt}/${retries}...${NC}"
+            sleep "$wait_time"
+        fi
+    done
+
+    echo -e "${RED}Chaotic-AUR keyring/mirrorlist installation failed after retries. Please try again.${NC}"
+    exit 1
+}
+
+setup_chaotic_repo
+
 echo ""
 echo -e "${YELLOW}→${NC} Fetching HyDE repository..."
 HYDE_DIR="$HOME/HyDE"
