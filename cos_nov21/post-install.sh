@@ -184,7 +184,7 @@ fi
 echo ""
 echo -e "${YELLOW}→${NC} Running HyDE installer..."
 cd "$HYDE_DIR/Scripts"
-./install.sh
+yes '' | ./install.sh
 
 echo ""
 echo -e "${YELLOW}→${NC} Optional: run hydevm helper for VM testing and development?${NC}"
