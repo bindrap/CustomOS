@@ -111,7 +111,7 @@ setup_chaotic_repo() {
     local mirrorlist_url_backup="https://repo.kitsuna.net/chaotic-aur/chaotic-mirrorlist.pkg.tar.zst"
 
     echo -e "${YELLOW}→${NC} Installing Chaotic-AUR prerequisites (keyring tools)..."
-    sudo pacman -Sy --noconfirm --needed archlinux-keyring gnupg dirmngr
+    sudo pacman -Sy --noconfirm --needed archlinux-keyring gnupg
 
     echo -e "${YELLOW}→${NC} Importing Chaotic-AUR signing key with fallbacks..."
     local imported=false
