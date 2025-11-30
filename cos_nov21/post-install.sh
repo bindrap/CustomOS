@@ -179,6 +179,24 @@ EOF_CHAOTIC
 setup_chaotic_repo
 
 echo ""
+echo -e "${YELLOW}→${NC} Installing performance-tuned kernel (linux-cachyos + headers)..."
+sudo pacman -S --needed --noconfirm \
+    linux-cachyos \
+    linux-cachyos-headers
+
+echo ""
+echo -e "${YELLOW}→${NC} Enabling zram swap (zstd, up to 8GB or half of RAM)..."
+sudo pacman -S --needed --noconfirm zram-generator
+sudo mkdir -p /etc/systemd
+sudo tee /etc/systemd/zram-generator.conf >/dev/null <<'EOF_ZRAM'
+[zram0]
+zram-size = min(ram/2, 8192)
+compression-algorithm = zstd
+EOF_ZRAM
+sudo systemctl daemon-reload
+sudo systemctl enable --now systemd-zram-setup@zram0.service
+
+echo ""
 echo -e "${YELLOW}→${NC} Fetching HyDE repository..."
 HYDE_DIR="$HOME/HyDE"
 if [ -d "$HYDE_DIR/.git" ]; then
