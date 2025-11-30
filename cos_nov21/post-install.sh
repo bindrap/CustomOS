@@ -103,6 +103,14 @@ sudo pacman -S --needed --noconfirm \
     mangohud \
     hyprpicker
 
+echo ""
+echo -e "${YELLOW}→${NC} Installing HyDE font stack (JetBrains Mono Nerd Font, Noto, Font Awesome)..."
+sudo pacman -S --needed --noconfirm \
+    ttf-jetbrains-mono-nerd \
+    noto-fonts \
+    noto-fonts-emoji \
+    ttf-font-awesome
+
 require_internet
 
 # Pre-seed Chaotic-AUR keyring with resilient keyserver fallbacks to avoid
@@ -213,6 +221,7 @@ fi
 echo ""
 echo -e "${YELLOW}→${NC} Running HyDE installer..."
 cd "$HYDE_DIR/Scripts"
+export HYDE_BAR="waybar"
 yes '' | ./install.sh
 
 echo ""

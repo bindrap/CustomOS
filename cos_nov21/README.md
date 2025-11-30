@@ -40,6 +40,8 @@ chmod +x post-install.sh
 
 > Missing dependency warnings (e.g., `qt5-base`, `mangohud`, `hyprpicker`) during HyDE setup are now auto-installed by `post-install.sh`. If you saw those messages in a previous run, just rerun `./post-install.sh` and it will pull in the packages before invoking the HyDE installer.
 
+> HyDE UI fixes: `post-install.sh` now installs the HyDE font stack (JetBrains Mono Nerd Font, Noto, Font Awesome) and sets the bar selection to Waybar before running the installer to avoid the "hyprland-unknown-bar-service" startup error. Rerun the script if you previously saw missing fonts or that service failure.
+
 > Performance extras: the post-install now installs the CachyOS kernel (`linux-cachyos` + headers) and enables a zram swap device (zstd, up to 8GB or half of RAM) for smoother Wayland multitasking.
 
 ### 2. Test in QEMU
