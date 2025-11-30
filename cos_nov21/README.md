@@ -24,6 +24,20 @@ bash build-hyprland-iso.sh
 
 The ISO will be created in `iso-output/`
 
+### Re-run post-install without rebuilding the ISO
+
+You can run the HyDE post-install script directly on an existing Arch install (or the system you installed from this ISO) without rebuilding:
+
+```bash
+sudo pacman -S --needed git
+git clone https://github.com/HyDE-Project/CustomOS.git ~/CustomOS
+cd ~/CustomOS/cos_nov21
+chmod +x post-install.sh
+./post-install.sh
+```
+
+> Tip: If you already have this repo on the installed system (e.g., copied from the ISO), you can simply `cd /path/to/cos_nov21` and run `./post-install.sh` again. The script is idempotent and will refresh HyDE/Chaotic-AUR if needed.
+
 ### 2. Test in QEMU
 
 ```bash
