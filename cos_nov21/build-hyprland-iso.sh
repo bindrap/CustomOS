@@ -35,10 +35,9 @@ echo -e "${YELLOW}PBOS (Parteek Bindra Operating System) - Hyprland Edition${NC}
 echo "Output: $OUTPUT_DIR/${ISO_NAME}-${ISO_VERSION}.iso"
 echo ""
 echo "Includes:"
-echo "  ✓ Hyprland with ALT key bindings"
+echo "  ✓ HyDE Desktop Environment"
 echo "  ✓ Complete font stack"
-echo "  ✓ Waybar + Mako + Wofi"
-echo "  ✓ All configs in cos_nov21/dotfiles/"
+echo "  ✓ CachyOS kernel + zram"
 echo "  ✓ Full installation scripts"
 echo ""
 
@@ -55,11 +54,6 @@ fi
 
 if [ ! -f "$SCRIPT_DIR/post-install.sh" ]; then
     echo -e "${RED}✗${NC} post-install.sh not found!"
-    exit 1
-fi
-
-if [ ! -d "$SCRIPT_DIR/dotfiles" ]; then
-    echo -e "${RED}✗${NC} dotfiles directory not found!"
     exit 1
 fi
 
@@ -141,16 +135,6 @@ sed -i '/automated_script/d' airootfs/root/.zlogin 2>/dev/null || true
 
 echo "→ Creating custom setup in ISO..."
 mkdir -p airootfs/root/custom-setup
-
-# Copy dotfiles
-echo "→ Copying dotfiles..."
-if [ -d "/workspace/cos_nov21/dotfiles" ]; then
-    cp -r /workspace/cos_nov21/dotfiles airootfs/root/custom-setup/
-    echo "  ✓ Dotfiles copied"
-else
-    echo "  ✗ ERROR: dotfiles not found!"
-    exit 1
-fi
 
 # Copy installation scripts
 echo "→ Copying installation scripts..."
