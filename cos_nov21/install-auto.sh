@@ -540,52 +540,62 @@ echo -e "${YELLOW}→${NC} Copying custom setup..."
 cp -r "$SCRIPT_DIR" /mnt/home/$USERNAME/custom-setup
 arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/custom-setup
 
-# Set up auto-run on first login (use both .zprofile and .bashrc for compatibility)
+# Create a welcome message for first login
 cat >> /mnt/home/$USERNAME/.bash_profile << 'EOF'
-# Auto-run custom setup on first login
+# Show post-install instructions on first login
 if [ ! -f ~/.setup-complete ]; then
-    if [ -f ~/custom-setup/post-install.sh ]; then
-        echo "Running CustomOS setup..."
-        cd ~/custom-setup
-        bash post-install.sh
-        touch ~/.setup-complete
-    fi
+    cat << 'WELCOME'
+
+╔═══════════════════════════════════════════════════════════╗
+║                                                           ║
+║         Welcome to PBOS (Parteek Bindra OS)               ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+
+Base system installed successfully!
+
+To complete the HyDE desktop environment setup, run:
+
+    cd ~/custom-setup && bash post-install.sh
+
+This will install:
+  • HyDE desktop environment
+  • CachyOS performance kernel
+  • Zram swap configuration
+  • All fonts and dependencies
+
+WELCOME
 fi
 EOF
 
 cat >> /mnt/home/$USERNAME/.zprofile << 'EOF'
-# Auto-run custom setup on first login
+# Show post-install instructions on first login
 if [ ! -f ~/.setup-complete ]; then
-    if [ -f ~/custom-setup/post-install.sh ]; then
-        echo "Running CustomOS setup..."
-        cd ~/custom-setup
-        bash post-install.sh
-        touch ~/.setup-complete
-    fi
+    cat << 'WELCOME'
+
+╔═══════════════════════════════════════════════════════════╗
+║                                                           ║
+║         Welcome to PBOS (Parteek Bindra OS)               ║
+║                                                           ║
+╚═══════════════════════════════════════════════════════════╝
+
+Base system installed successfully!
+
+To complete the HyDE desktop environment setup, run:
+
+    cd ~/custom-setup && bash post-install.sh
+
+This will install:
+  • HyDE desktop environment
+  • CachyOS performance kernel
+  • Zram swap configuration
+  • All fonts and dependencies
+
+WELCOME
 fi
 EOF
 
-# Also create a systemd user service for more reliability
-mkdir -p /mnt/home/$USERNAME/.config/systemd/user
-cat > /mnt/home/$USERNAME/.config/systemd/user/customos-setup.service << 'EOF'
-[Unit]
-Description=CustomOS First-Time Setup
-ConditionPathExists=%h/custom-setup/post-install.sh
-ConditionPathExists=!%h/.setup-complete
-
-[Service]
-Type=oneshot
-ExecStart=/bin/bash %h/custom-setup/post-install.sh
-ExecStartPost=/usr/bin/touch %h/.setup-complete
-
-[Install]
-WantedBy=default.target
-EOF
-
-# Enable the service
-arch-chroot /mnt systemctl --user --global enable customos-setup.service 2>/dev/null || true
-
-arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/.bash_profile /home/$USERNAME/.zprofile /home/$USERNAME/.config 2>/dev/null || true
+arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/.bash_profile /home/$USERNAME/.zprofile 2>/dev/null || true
 
 # Unmount
 echo -e "${YELLOW}→${NC} Unmounting filesystems..."
@@ -616,10 +626,14 @@ echo "Next steps:"
 echo "  1. Remove installation media"
 echo "  2. Reboot: type 'reboot'"
 echo "  3. Login as: $USERNAME"
-echo "  4. Custom Hyprland setup will auto-install on first login"
+echo "  4. Run the HyDE desktop setup:"
+echo -e "     ${GREEN}cd ~/custom-setup && bash post-install.sh${NC}"
 echo ""
-echo -e "${YELLOW}If auto-install doesn't run, manually execute:${NC}"
-echo -e "${GREEN}  cd ~/custom-setup && bash post-install.sh${NC}"
+echo -e "${YELLOW}The post-install script will:${NC}"
+echo "  • Install HyDE desktop environment"
+echo "  • Configure CachyOS kernel for better performance"
+echo "  • Set up zram swap"
+echo "  • Install all fonts and dependencies"
 echo ""
 echo -e "${BLUE}Press ENTER to reboot now (or Ctrl+C to stay in live environment)${NC}"
 read

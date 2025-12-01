@@ -1,5 +1,7 @@
 # CustomOS Nov21 - Simplified Hyprland ISO
 
+> **HyDE transition:** The Nov21 flow now installs the upstream HyDE desktop environment directly. The old dotfile-sync workflow (local `dotfiles/`, rsync push/pull, VM verification) is no longer used. HyDE manages configuration during installation, so skip dotfile transfers when using this profile.
+
 CustomOS Nov21 is a streamlined, easy-to-customize Arch Linux ISO featuring Hyprland window manager. All configuration files are pre-built and easily editable before ISO creation.
 
 ## Philosophy: Simple & Editable
@@ -21,6 +23,26 @@ bash build-hyprland-iso.sh
 ```
 
 The ISO will be created in `iso-output/`
+
+### Re-run post-install without rebuilding the ISO
+
+You can run the HyDE post-install script directly on an existing Arch install (or the system you installed from this ISO) without rebuilding:
+
+```bash
+sudo pacman -S --needed git
+git clone https://github.com/HyDE-Project/CustomOS.git ~/CustomOS
+cd ~/CustomOS/cos_nov21
+chmod +x post-install.sh
+./post-install.sh
+```
+
+> Tip: If you already have this repo on the installed system (e.g., copied from the ISO), you can simply `cd /path/to/cos_nov21` and run `./post-install.sh` again. The script is idempotent and will refresh HyDE/Chaotic-AUR if needed.
+
+> Missing dependency warnings (e.g., `qt5-base`, `mangohud`, `hyprpicker`) during HyDE setup are now auto-installed by `post-install.sh`. If you saw those messages in a previous run, just rerun `./post-install.sh` and it will pull in the packages before invoking the HyDE installer.
+
+> HyDE UI fixes: `post-install.sh` now installs the HyDE font stack (JetBrains Mono Nerd Font, Noto, Font Awesome) and sets the bar selection to Waybar before running the installer to avoid the "hyprland-unknown-bar-service" startup error. Rerun the script if you previously saw missing fonts or that service failure.
+
+> Performance extras: the post-install now installs the CachyOS kernel (`linux-cachyos` + headers) and enables a zram swap device (zstd, up to 8GB or half of RAM) for smoother Wayland multitasking.
 
 ### 2. Test in QEMU
 
@@ -244,11 +266,15 @@ Don't forget to add the terminal package to `post-install.sh`!
    - Enter username and password
    - Wait for installation to complete
 
-5. **Reboot:**
-   - Remove ISO
-   - Reboot
-   - Login
-   - Hyprland will auto-start
+5. **Reboot and complete setup:**
+   - Remove ISO and reboot
+   - Login with your username
+   - Run the post-install script:
+     ```bash
+     cd ~/custom-setup && bash post-install.sh
+     ```
+   - Reboot again
+   - HyDE desktop will start automatically
 
 ### In QEMU
 
@@ -267,9 +293,14 @@ bash test-iso-qemu-install.sh
 
 2. **Boot from USB**
 
-3. **Run:**
+3. **Install base system:**
    ```bash
    install-arch
+   ```
+
+4. **After reboot, complete setup:**
+   ```bash
+   cd ~/custom-setup && bash post-install.sh
    ```
 
 ## Troubleshooting
