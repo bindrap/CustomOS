@@ -127,13 +127,15 @@ fi
 
 echo ""
 echo -e "${YELLOW}QEMU Configuration:${NC}"
-echo "  Memory: 4GB"
+echo "  Memory: 8GB (increased for HyDE/Hyprland)"
 echo "  CPUs: 4 cores"
 echo "  Disk: $DISK_SIZE (qcow2)"
-echo "  Graphics: virtio-gpu (hardware acceleration)"
-echo "  Display: SDL with OpenGL"
+echo "  Graphics: QXL (better QEMU compatibility)"
+echo "  Display: GTK with OpenGL"
 echo "  KVM: $([ $KVM_AVAILABLE -eq 1 ] && echo 'Enabled' || echo 'Disabled')"
 echo "  Boot: $([ "$BOOT_MODE" = "cdrom" ] && echo 'CD-ROM (install mode)' || echo 'Disk (installed system)')"
+echo ""
+echo -e "${BLUE}Note:${NC} Using QXL graphics for better compatibility with CachyOS kernel"
 echo ""
 
 if [ "$BOOT_MODE" = "cdrom" ]; then
@@ -213,7 +215,7 @@ fi
 # Build QEMU command
 QEMU_CMD="qemu-system-x86_64"
 QEMU_ARGS=(
-    -m 4G
+    -m 8G
     -smp 4
 )
 
@@ -229,9 +231,10 @@ fi
 QEMU_ARGS+=(
     # Virtual disk
     -drive "file=$DISK_FILE,format=qcow2,if=virtio"
-    # Graphics
-    -vga virtio
-    -display sdl,gl=on
+    # Graphics - QXL for better compatibility with Hyprland/CachyOS kernel
+    # virtio-gpu can have issues with some kernel optimizations
+    -device qxl-vga,vgamem_mb=256
+    -display gtk,gl=on
     # Network
     -netdev user,id=net0
     -device virtio-net-pci,netdev=net0

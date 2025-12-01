@@ -186,6 +186,15 @@ EOF_CHAOTIC
 
 setup_chaotic_repo
 
+# Pre-install zsh and set as default shell BEFORE running HyDE installer
+# This prevents interactive chsh prompts during HyDE installation
+echo ""
+echo -e "${YELLOW}→${NC} Installing and configuring zsh shell..."
+sudo pacman -S --needed --noconfirm zsh zsh-completions
+# Use usermod instead of chsh to avoid interactive prompts
+sudo usermod -s /usr/bin/zsh "$USER"
+echo -e "${GREEN}✓${NC} Zsh installed and set as default shell"
+
 echo ""
 echo -e "${YELLOW}→${NC} Installing performance-tuned kernel (linux-cachyos + headers)..."
 sudo pacman -S --needed --noconfirm \

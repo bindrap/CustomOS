@@ -95,8 +95,8 @@ if [ -n "$KVM_ARGS" ]; then
     QEMU_ARGS+=($KVM_ARGS)
 fi
 
-# Add resources
-QEMU_ARGS+=(-m 4G -smp 4)
+# Add resources (8GB for HyDE/Hyprland performance)
+QEMU_ARGS+=(-m 8G -smp 4)
 
 # Add UEFI if available
 if [ -n "$OVMF_CODE" ] && [ -n "$OVMF_VARS" ]; then
@@ -109,7 +109,8 @@ fi
 # Add disk and devices
 QEMU_ARGS+=(
     -drive "file=$DISK_FILE,format=qcow2,if=virtio"
-    -vga virtio -display sdl,gl=on
+    # QXL graphics for better compatibility with CachyOS kernel and Hyprland
+    -device qxl-vga,vgamem_mb=256 -display gtk,gl=on
     -netdev user,id=net0,hostfwd=tcp::2222-:22 -device virtio-net-pci,netdev=net0
     -virtfs local,path="$SHARED_DIR",mount_tag=shared,security_model=passthrough,id=shared0
     -name "CustomOS Nov21 - Installed System"
