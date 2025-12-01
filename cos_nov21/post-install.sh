@@ -222,7 +222,7 @@ echo ""
 echo -e "${YELLOW}→${NC} Running HyDE installer..."
 cd "$HYDE_DIR/Scripts"
 export HYDE_BAR="waybar"
-yes '' | ./install.sh
+./install.sh # took out yes '' |
 
 echo ""
 echo -e "${YELLOW}→${NC} Optional: run hydevm helper for VM testing and development?${NC}"
