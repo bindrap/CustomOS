@@ -266,11 +266,15 @@ Don't forget to add the terminal package to `post-install.sh`!
    - Enter username and password
    - Wait for installation to complete
 
-5. **Reboot:**
-   - Remove ISO
-   - Reboot
-   - Login
-   - Hyprland will auto-start
+5. **Reboot and complete setup:**
+   - Remove ISO and reboot
+   - Login with your username
+   - Run the post-install script:
+     ```bash
+     cd ~/custom-setup && bash post-install.sh
+     ```
+   - Reboot again
+   - HyDE desktop will start automatically
 
 ### In QEMU
 
@@ -289,9 +293,14 @@ bash test-iso-qemu-install.sh
 
 2. **Boot from USB**
 
-3. **Run:**
+3. **Install base system:**
    ```bash
    install-arch
+   ```
+
+4. **After reboot, complete setup:**
+   ```bash
+   cd ~/custom-setup && bash post-install.sh
    ```
 
 ## Troubleshooting

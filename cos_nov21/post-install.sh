@@ -253,7 +253,14 @@ echo -e "${NC}"
 echo ""
 echo -e "${GREEN}✓${NC} HyDE installation complete!"
 echo ""
+
+# Mark setup as complete to hide welcome message on next login
+touch ~/.setup-complete
+
 echo -e "${YELLOW}Next steps:${NC}"
 echo -e "  1. Type ${GREEN}reboot${NC} to restart"
 echo -e "  2. Log in and enjoy the HyDE desktop environment"
+echo ""
+echo -e "${BLUE}Note:${NC} If you need to re-run this script, just execute:"
+echo -e "  ${GREEN}cd ~/custom-setup && bash post-install.sh${NC}"
 echo ""
