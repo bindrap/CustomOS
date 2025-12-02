@@ -578,58 +578,22 @@ echo -e "${YELLOW}→${NC} Copying custom setup..."
 cp -r "$SCRIPT_DIR" /mnt/home/$USERNAME/custom-setup
 arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/custom-setup
 
-# Create a welcome message for first login
+# Create auto-run script for first login
 cat >> /mnt/home/$USERNAME/.bash_profile << 'EOF'
-# Show post-install instructions on first login
+# Auto-run post-install setup on first login
 if [ ! -f ~/.setup-complete ]; then
-    cat << 'WELCOME'
-
-╔═══════════════════════════════════════════════════════════╗
-║                                                           ║
-║         Welcome to PBOS (Parteek Bindra OS)               ║
-║                                                           ║
-╚═══════════════════════════════════════════════════════════╝
-
-Base system installed successfully!
-
-To complete the HyDE desktop environment setup, run:
-
-    cd ~/custom-setup && bash post-install.sh
-
-This will install:
-  • HyDE desktop environment
-  • CachyOS performance kernel
-  • Zram swap configuration
-  • All fonts and dependencies
-
-WELCOME
+    if [ -f ~/custom-setup/first-boot.sh ]; then
+        bash ~/custom-setup/first-boot.sh
+    fi
 fi
 EOF
 
 cat >> /mnt/home/$USERNAME/.zprofile << 'EOF'
-# Show post-install instructions on first login
+# Auto-run post-install setup on first login
 if [ ! -f ~/.setup-complete ]; then
-    cat << 'WELCOME'
-
-╔═══════════════════════════════════════════════════════════╗
-║                                                           ║
-║         Welcome to PBOS (Parteek Bindra OS)               ║
-║                                                           ║
-╚═══════════════════════════════════════════════════════════╝
-
-Base system installed successfully!
-
-To complete the HyDE desktop environment setup, run:
-
-    cd ~/custom-setup && bash post-install.sh
-
-This will install:
-  • HyDE desktop environment
-  • CachyOS performance kernel
-  • Zram swap configuration
-  • All fonts and dependencies
-
-WELCOME
+    if [ -f ~/custom-setup/first-boot.sh ]; then
+        bash ~/custom-setup/first-boot.sh
+    fi
 fi
 EOF
 
@@ -644,7 +608,15 @@ cat > /mnt/root/EMERGENCY_RECOVERY.txt << 'EMERGENCY_EOF'
 
 If you see errors about UUID timeouts or /boot dependency failures:
 
-1. CONNECT TO NETWORK (Required for post-install):
+1. AUTOMATIC POST-INSTALL:
+   On first login, the system will automatically:
+   - Check for internet connectivity
+   - Guide you through WiFi setup if needed
+   - Run the post-installation script
+
+   Just follow the on-screen prompts!
+
+2. MANUAL NETWORK CONNECTION (if auto-setup fails):
 
    a) Using NetworkManager (if available):
       systemctl start NetworkManager
@@ -661,23 +633,26 @@ If you see errors about UUID timeouts or /boot dependency failures:
       systemctl start NetworkManager
       # Should auto-connect
 
-2. VERIFY SYSTEM INTEGRITY:
+3. MANUAL POST-INSTALL (if auto-run fails):
+   Once network is connected:
+   cd ~/custom-setup
+   bash first-boot.sh
+
+   Or run post-install directly:
+   bash post-install.sh
+
+4. VERIFY SYSTEM INTEGRITY:
    journalctl -xb | grep -i error
    lsblk -f
    cat /etc/fstab
 
-3. FIX BOOT PARTITION ISSUES:
+5. FIX BOOT PARTITION ISSUES:
    If /boot failed to mount:
    - System will still boot (nofail option enabled)
    - Mount manually: mount /boot
    - Verify: ls /boot/vmlinuz-linux
 
-4. RUN POST-INSTALL:
-   Once network is connected:
-   cd ~/custom-setup
-   bash post-install.sh
-
-5. REBUILD INITRAMFS (if boot issues persist):
+6. REBUILD INITRAMFS (if boot issues persist):
    mkinitcpio -P
 
 For more help, see ~/custom-setup/README or visit PBOS forums.
@@ -736,29 +711,38 @@ echo "Next steps:"
 echo "  1. Remove installation media"
 echo "  2. Reboot: type 'reboot'"
 echo "  3. Login as: $USERNAME"
-echo "  4. Run the HyDE desktop setup:"
-echo -e "     ${GREEN}cd ~/custom-setup && bash post-install.sh${NC}"
 echo ""
-echo -e "${YELLOW}The post-install script will:${NC}"
-echo "  • Install HyDE desktop environment"
-echo "  • Configure CachyOS kernel for better performance"
-echo "  • Set up zram swap"
-echo "  • Install all fonts and dependencies"
+echo -e "${CYAN}═══════════════════════════════════════════════════════════${NC}"
+echo -e "${GREEN}NEW: Automatic Post-Installation Setup${NC}"
+echo -e "${CYAN}═══════════════════════════════════════════════════════════${NC}"
+echo ""
+echo "On first login, the system will automatically:"
+echo "  1. Check for internet connectivity"
+echo "  2. Guide you through WiFi setup if needed"
+echo "  3. Install HyDE desktop environment"
+echo "  4. Configure CachyOS kernel for better performance"
+echo "  5. Set up zram swap"
+echo "  6. Install all fonts and dependencies"
+echo ""
+echo -e "${YELLOW}No manual commands needed - just login and follow the prompts!${NC}"
 echo ""
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${CYAN}TROUBLESHOOTING:${NC}"
 echo ""
 echo -e "${YELLOW}If you see boot errors (UUID timeout, /boot dependency failure):${NC}"
 echo "  • The system will still boot to a login prompt (emergency mode)"
-echo "  • Login as root with your password"
-echo "  • Read the recovery guide: ${GREEN}cat /root/EMERGENCY_RECOVERY.txt${NC}"
-echo "  • Connect to WiFi using NetworkManager or iwd"
-echo "  • Then run the post-install script"
+echo "  • Login as root or $USERNAME with your password"
+echo "  • The automatic setup will check network and guide you through WiFi connection"
+echo "  • If auto-setup fails, read: ${GREEN}cat /root/EMERGENCY_RECOVERY.txt${NC}"
 echo ""
 echo -e "${YELLOW}Network connectivity tools installed:${NC}"
 echo "  • nmcli (NetworkManager) - Primary tool"
 echo "  • iwctl (iwd) - WiFi fallback"
 echo "  • dhcpcd - DHCP client"
+echo ""
+echo -e "${YELLOW}Manual WiFi connection (if needed):${NC}"
+echo "  • WiFi setup wizard: ${GREEN}bash ~/custom-setup/wifi-setup.sh${NC}"
+echo "  • Or use nmcli: ${GREEN}nmcli device wifi connect \"SSID\" password \"PASSWORD\"${NC}"
 echo ""
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
