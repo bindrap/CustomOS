@@ -96,6 +96,7 @@ echo ""
 docker run --rm -i --privileged \
     -v "$ROOT_DIR:/workspace" \
     -v "$CACHE_DIR:/var/cache/pacman/pkg" \
+    --tmpfs /tmp:rw,noexec,nosuid,size=2g \
     -w /workspace/cos_nov21 \
     -e ISO_NAME="$ISO_NAME" \
     -e ISO_VERSION="$ISO_VERSION" \
@@ -114,7 +115,7 @@ if [ "${DOCKER_IMAGE}" = "archlinux:latest" ]; then
     pacman -S --needed --noconfirm archiso
 fi
 
-WORK_DIR="/workspace/cos_nov21/work"
+WORK_DIR="/tmp/archiso-customos-nov21"
 ISO_DIR="$WORK_DIR/iso-build"
 OUTPUT_DIR="/workspace/cos_nov21/iso-output"
 
