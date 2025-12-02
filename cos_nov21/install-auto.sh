@@ -347,8 +347,10 @@ echo -e "${YELLOW}→${NC} Installing base system..."
 if [ "$INSTALL_MODE" = "online" ]; then
     # Online: Use pacstrap to download and install
     echo "  Downloading and installing packages from internet..."
+    echo "  Installing: base system + network tools (NetworkManager, iwd) + essentials"
     if ! pacstrap /mnt base base-devel linux linux-firmware \
-        vim networkmanager sudo git openssh rsync; then
+        vim networkmanager iwd wpa_supplicant sudo git openssh rsync \
+        dhcpcd netctl wireless_tools; then
         echo -e "${RED}✗${NC} Failed to install packages!"
         echo "This could mean:"
         echo "  - No internet connection (try manual ping test)"
@@ -372,7 +374,8 @@ else
         # Install from cache
         pacman -r /mnt -S --noconfirm --cachedir /mnt/var/cache/pacman/pkg \
             base base-devel linux linux-firmware \
-            vim networkmanager sudo git openssh rsync
+            vim networkmanager iwd wpa_supplicant sudo git openssh rsync \
+            dhcpcd netctl wireless_tools
     else
         echo -e "${RED}✗${NC} Offline installation requires offline packages!"
         echo ""
@@ -394,6 +397,21 @@ fi
 # Generate fstab
 echo -e "${YELLOW}→${NC} Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
+
+# Fix /boot mount to use nofail option (critical for older hardware and dual boot)
+# This prevents boot failures when the EFI partition isn't detected immediately
+echo -e "${YELLOW}→${NC} Configuring fstab for reliable boot..."
+if grep -q "/boot" /mnt/etc/fstab; then
+    # Add nofail,x-systemd.device-timeout=10 to /boot entry
+    sed -i '/\/boot/s/rw,relatime/rw,relatime,nofail,x-systemd.device-timeout=10/' /mnt/etc/fstab
+    echo "  ✓ Added nofail option to /boot mount (prevents boot failure if partition not immediately available)"
+fi
+
+# Verify fstab entries
+echo ""
+echo "Generated fstab entries:"
+cat /mnt/etc/fstab
+echo ""
 
 # Configure system in chroot
 echo -e "${YELLOW}→${NC} Configuring system..."
@@ -516,9 +534,29 @@ fi
 echo "Bootloader installation verified"
 ls -la /boot/
 
-# Enable NetworkManager and SSH
+# Ensure initramfs includes all necessary modules for hardware detection
+# This is critical for older hardware where disk controllers need explicit modules
+echo "Updating mkinitcpio configuration for better hardware compatibility..."
+# Add block device modules to ensure all disk types are supported
+sed -i 's/^MODULES=.*/MODULES=(nvme ahci sd_mod usb_storage uas)/' /etc/mkinitcpio.conf
+# Rebuild initramfs with hardware detection modules
+mkinitcpio -P
+
+# Enable NetworkManager, iwd, and SSH for multiple network connectivity options
+echo "Enabling network services..."
 systemctl enable NetworkManager
+systemctl enable iwd
 systemctl enable sshd
+systemctl enable dhcpcd
+
+# Ensure NetworkManager uses iwd as WiFi backend for better compatibility
+mkdir -p /etc/NetworkManager/conf.d
+cat > /etc/NetworkManager/conf.d/wifi_backend.conf << 'NMCONF'
+[device]
+wifi.backend=iwd
+NMCONF
+
+echo "Network services configured: NetworkManager (primary), iwd, dhcpcd"
 
 # Detect if running in VirtualBox and configure accordingly
 if lspci | grep -i "virtualbox" &>/dev/null || dmesg | grep -i "vbox" &>/dev/null; then
@@ -597,7 +635,79 @@ EOF
 
 arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME/.bash_profile /home/$USERNAME/.zprofile 2>/dev/null || true
 
+# Create emergency recovery guide
+echo -e "${YELLOW}→${NC} Creating emergency recovery guide..."
+cat > /mnt/root/EMERGENCY_RECOVERY.txt << 'EMERGENCY_EOF'
+╔══════════════════════════════════════════════════════════════╗
+║             PBOS EMERGENCY MODE RECOVERY GUIDE                ║
+╚══════════════════════════════════════════════════════════════╝
+
+If you see errors about UUID timeouts or /boot dependency failures:
+
+1. CONNECT TO NETWORK (Required for post-install):
+
+   a) Using NetworkManager (if available):
+      systemctl start NetworkManager
+      nmcli device wifi list
+      nmcli device wifi connect "SSID" password "PASSWORD"
+
+   b) Using iwctl (fallback):
+      systemctl start iwd
+      iwctl station wlan0 scan
+      iwctl station wlan0 get-networks
+      iwctl station wlan0 connect "SSID"
+
+   c) For ethernet:
+      systemctl start NetworkManager
+      # Should auto-connect
+
+2. VERIFY SYSTEM INTEGRITY:
+   journalctl -xb | grep -i error
+   lsblk -f
+   cat /etc/fstab
+
+3. FIX BOOT PARTITION ISSUES:
+   If /boot failed to mount:
+   - System will still boot (nofail option enabled)
+   - Mount manually: mount /boot
+   - Verify: ls /boot/vmlinuz-linux
+
+4. RUN POST-INSTALL:
+   Once network is connected:
+   cd ~/custom-setup
+   bash post-install.sh
+
+5. REBUILD INITRAMFS (if boot issues persist):
+   mkinitcpio -P
+
+For more help, see ~/custom-setup/README or visit PBOS forums.
+EMERGENCY_EOF
+
+# Verify boot configuration before unmounting
+echo -e "${YELLOW}→${NC} Verifying boot configuration..."
+echo "Checking fstab entries:"
+cat /mnt/etc/fstab | grep -E "^(UUID|/dev)" || echo "No mount entries found!"
+
+echo ""
+echo "Checking bootloader files:"
+if [ -d /mnt/boot/loader ]; then
+    echo "  systemd-boot configuration:"
+    ls -lh /mnt/boot/loader/entries/
+    cat /mnt/boot/loader/entries/arch.conf 2>/dev/null || echo "  arch.conf not found"
+elif [ -f /mnt/boot/grub/grub.cfg ]; then
+    echo "  GRUB configuration exists"
+    ls -lh /mnt/boot/grub/grub.cfg
+fi
+
+echo ""
+echo "Checking kernel and initramfs:"
+ls -lh /mnt/boot/vmlinuz-linux /mnt/boot/initramfs-linux.img 2>/dev/null || echo "  WARNING: Kernel or initramfs missing!"
+
+echo ""
+echo -e "${GREEN}✓${NC} Boot configuration verified"
+
 # Unmount
+echo ""
 echo -e "${YELLOW}→${NC} Unmounting filesystems..."
 umount -R /mnt
 
@@ -634,6 +744,23 @@ echo "  • Install HyDE desktop environment"
 echo "  • Configure CachyOS kernel for better performance"
 echo "  • Set up zram swap"
 echo "  • Install all fonts and dependencies"
+echo ""
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${CYAN}TROUBLESHOOTING:${NC}"
+echo ""
+echo -e "${YELLOW}If you see boot errors (UUID timeout, /boot dependency failure):${NC}"
+echo "  • The system will still boot to a login prompt (emergency mode)"
+echo "  • Login as root with your password"
+echo "  • Read the recovery guide: ${GREEN}cat /root/EMERGENCY_RECOVERY.txt${NC}"
+echo "  • Connect to WiFi using NetworkManager or iwd"
+echo "  • Then run the post-install script"
+echo ""
+echo -e "${YELLOW}Network connectivity tools installed:${NC}"
+echo "  • nmcli (NetworkManager) - Primary tool"
+echo "  • iwctl (iwd) - WiFi fallback"
+echo "  • dhcpcd - DHCP client"
+echo ""
+echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo -e "${BLUE}Press ENTER to reboot now (or Ctrl+C to stay in live environment)${NC}"
 read
