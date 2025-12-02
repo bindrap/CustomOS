@@ -96,7 +96,6 @@ echo ""
 docker run --rm -i --privileged \
     -v "$ROOT_DIR:/workspace" \
     -v "$CACHE_DIR:/var/cache/pacman/pkg" \
-    --tmpfs /tmp:rw,noexec,nosuid,size=2g \
     -w /workspace/cos_nov21 \
     -e ISO_NAME="$ISO_NAME" \
     -e ISO_VERSION="$ISO_VERSION" \
