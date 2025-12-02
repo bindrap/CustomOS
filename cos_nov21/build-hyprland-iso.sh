@@ -114,7 +114,7 @@ if [ "${DOCKER_IMAGE}" = "archlinux:latest" ]; then
     pacman -S --needed --noconfirm archiso
 fi
 
-WORK_DIR="/tmp/archiso-customos-nov21"
+WORK_DIR="/workspace/cos_nov21/work"
 ISO_DIR="$WORK_DIR/iso-build"
 OUTPUT_DIR="/workspace/cos_nov21/iso-output"
 
